@@ -1,4 +1,4 @@
-import { NOTE_MOTION, contourPoint } from "./note-motion.js";
+import { NOTE_MOTION, contourPoint } from "./note-motion.js?v=20261004-2";
 
 const INK = "#f3f3f0";
 const SIGNAL = "#a9b2ff";

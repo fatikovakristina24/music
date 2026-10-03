@@ -1,7 +1,7 @@
 import { AudioEngine, NOTES } from "./audio/engine.js";
 import { NoteLoop, LOOP_LIMIT_SECONDS } from "./loop.js";
 import { VoiceRecorder, VOICE_LIMIT_SECONDS } from "./voice.js";
-import { SoundVisuals } from "./visuals.js";
+import { SoundVisuals } from "./visuals.js?v=20261004-2";
 
 const $ = (selector) => document.querySelector(selector);
 // Масштабируем весь desktop-макет, сохраняя его композицию.
