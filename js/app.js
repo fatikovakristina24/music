@@ -6,7 +6,10 @@ import { SoundVisuals } from "./visuals.js";
 const $ = (selector) => document.querySelector(selector);
 // Масштабируем весь desktop-макет, сохраняя его композицию.
 function fitStudio() {
-  $(".instrument").style.zoom = Math.min(1, window.innerWidth / 1440);
+  $(".instrument").style.zoom = Math.min(
+    1,
+    document.documentElement.clientWidth / 1440,
+  );
 }
 fitStudio();
 window.addEventListener("resize", fitStudio);

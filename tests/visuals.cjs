@@ -44,6 +44,8 @@ const path = require("node:path");
       );
       await page.waitForTimeout(350);
       frames.push(await picture());
+      fs.mkdirSync("test-results", { recursive: true });
+      await page.screenshot({ path: `test-results/motion-${key}.png` });
       await page.keyboard.up(key);
       await page.waitForTimeout(700);
     }
@@ -77,6 +79,19 @@ const path = require("node:path");
       idle,
       "Released notes leave no lingering animation",
     );
+    for (const width of [1440, 1280, 775]) {
+      await page.setViewportSize({ width, height: 700 });
+      await page.waitForTimeout(200);
+      assert.ok(
+        await page.evaluate(
+          () =>
+            document.documentElement.scrollWidth <=
+            document.documentElement.clientWidth,
+        ),
+        "No horizontal overflow",
+      );
+    }
+    await page.setViewportSize({ width: 1440, height: 960 });
     assert.deepEqual(errors, []);
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.reload();
