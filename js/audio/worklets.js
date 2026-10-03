@@ -2,7 +2,7 @@ import { PitchShifter } from './pitch-dsp.js';
 
 class VoicePitchProcessor extends AudioWorkletProcessor {
   static get parameterDescriptors() {
-    return [{ name: 'semitones', defaultValue: 0, minValue: -12, maxValue: 12, automationRate: 'k-rate' }];
+    return [{ name: 'semitones', defaultValue: 0, minValue: -12, maxValue: 24, automationRate: 'k-rate' }];
   }
   constructor() { super(); this.channels = []; }
   process(inputs, outputs, parameters) {

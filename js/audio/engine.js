@@ -1,4 +1,4 @@
-import { DEFAULT_EFFECTS, createEffectChain, effectTail } from './effects.js';
+import { DEFAULT_EFFECTS, createEffectChain, effectTail, effectivePitch } from './effects.js';
 import { shiftBuffer } from './pitch-dsp.js';
 
 export const NOTES = [
@@ -126,7 +126,7 @@ export class AudioEngine {
   updateEffect(name, value) {
     this.effects[name] = value;
     this.voiceChain?.update(this.effects);
-    if (name === 'pitch' && this.pitchNode) this.pitchNode.parameters.get('semitones').setValueAtTime(value, this.context.currentTime);
+    if (['pitch','child'].includes(name) && this.pitchNode) this.pitchNode.parameters.get('semitones').setValueAtTime(effectivePitch(this.effects), this.context.currentTime);
   }
 
   resetEffects() { for (const [name, value] of Object.entries(DEFAULT_EFFECTS)) this.updateEffect(name, value); }
@@ -134,7 +134,7 @@ export class AudioEngine {
   async playVoice(buffer, offset, onEnded) {
     const context = await this.worklets();
     this.stopVoice();
-    this.pitchNode = new AudioWorkletNode(context, 'contour-pitch', { outputChannelCount:[buffer.numberOfChannels], parameterData:{ semitones:this.effects.pitch } });
+    this.pitchNode = new AudioWorkletNode(context, 'contour-pitch', { outputChannelCount:[buffer.numberOfChannels], parameterData:{ semitones:effectivePitch(this.effects) } });
     this.voiceChain = createEffectChain(context, this.effects, this.voiceAnalyser);
     this.voiceSource = context.createBufferSource(); this.voiceSource.buffer = buffer;
     this.voiceSource.connect(this.pitchNode).connect(this.voiceChain.input);
@@ -156,7 +156,7 @@ export class AudioEngine {
     const OfflineContext = window.OfflineAudioContext || window.webkitOfflineAudioContext;
     const offline = new OfflineContext(2, Math.ceil((buffer.duration + tail) * buffer.sampleRate), buffer.sampleRate);
     const source = offline.createBufferSource();
-    source.buffer = shiftBuffer(offline, buffer, settings.pitch, Math.ceil(buffer.sampleRate * .09));
+    source.buffer = shiftBuffer(offline, buffer, effectivePitch(settings), Math.ceil(buffer.sampleRate * .09));
     const volume = offline.createGain(); volume.gain.value = .8; volume.connect(offline.destination);
     const chain = createEffectChain(offline, settings, volume, 0);
     source.connect(chain.input); source.start(0);

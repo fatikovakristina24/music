@@ -44,6 +44,23 @@ const fs = require('node:fs');
     const high = await frequency(); assert.ok(Math.abs(high - 880) < 60, `Live pitch-up ${high} Hz`);
     await range(-12); await page.waitForTimeout(250);
     const low = await frequency(); assert.ok(Math.abs(low - 220) < 45, `Live pitch-down ${low} Hz`);
+    await range(0);
+    await page.locator('#effect-child').evaluate(input => { input.value = 100; input.dispatchEvent(new Event('input', { bubbles:true })); });
+    await page.waitForTimeout(250);
+    const child = await frequency(); assert.ok(Math.abs(child - 659.25) < 50, `Live child voice ${child} Hz`);
+    await range(12); await page.waitForTimeout(250);
+    const combined = await frequency(); assert.ok(Math.abs(combined - 1318.5) < 65, `Combined pitch + child ${combined} Hz`);
+    const layout = await page.evaluate(() => {
+      const sliders = [...document.querySelectorAll('#voice-sliders .slider')];
+      const footnote = document.querySelector('.controls-footnote').getBoundingClientRect();
+      return { count:sliders.length, labelsClear:sliders.every(slider => {
+        const label = slider.querySelector('.slider-top').getBoundingClientRect();
+        const input = slider.querySelector('input').getBoundingClientRect();
+        return label.bottom <= input.top + (input.height - 16) / 2;
+      }), bottom:sliders.at(-1).getBoundingClientRect().bottom, footnote:footnote.top };
+    });
+    assert.equal(layout.count, 7); assert.equal(layout.labelsClear, true); assert.ok(layout.bottom < layout.footnote);
+    await page.screenshot({ path:path.join(process.cwd(), 'test-results', 'voice-child.png') });
     await page.locator('#mode-play').click();
     await page.waitForTimeout(150);
     assert.equal(await page.locator('#mode-play').getAttribute('aria-pressed'), 'true');
@@ -69,7 +86,7 @@ const fs = require('node:fs');
     });
     assert.ok(pitchTail.tail > .01, 'WAV preserves the last syllable after pitch processing');
     assert.deepEqual(errors, []);
-    fs.writeFileSync(path.join(process.cwd(), 'test-results', 'regressions.json'), JSON.stringify({ dry, high, low, pitchTail, errors, checks:'microphone refusal/retry, realtime pitch, mode switches, recording cleanup, held-note blur, pitch tail in WAV' }, null, 2));
+    fs.writeFileSync(path.join(process.cwd(), 'test-results', 'regressions.json'), JSON.stringify({ dry, high, low, child, combined, layout, pitchTail, errors, checks:'microphone refusal/retry, realtime pitch and child voice, combined pitch effects, seven-slider layout, mode switches, recording cleanup, held-note blur, pitch tail in WAV' }, null, 2));
     console.log('PASS: permission recovery, live pitch changes, cleanup, last-syllable export.');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

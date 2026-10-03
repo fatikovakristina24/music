@@ -78,7 +78,7 @@ fs.writeFileSync(fixture, wav);
     await page.waitForTimeout(850); await page.locator('#voice-record').click();
     await page.waitForFunction(() => !document.querySelector('#voice-play').disabled);
     assert.equal(await page.locator('#effect-pitch').isDisabled(), false);
-    for (const [name, value] of Object.entries({ pitch:4, robot:45, echo:24, room:35, distortion:12, radio:30 })) await range(`#effect-${name}`, value);
+    for (const [name, value] of Object.entries({ pitch:4, child:75, robot:45, echo:24, room:35, distortion:12, radio:30 })) await range(`#effect-${name}`, value);
     await page.locator('#voice-play').click(); await page.waitForTimeout(180);
     assert.equal(await page.locator('#voice-play').textContent(), 'Ⅱ Пауза');
     await page.screenshot({ path:path.join(output, 'voice-playing.png') });
@@ -93,6 +93,7 @@ fs.writeFileSync(fixture, wav);
     assert.ok(saved.length > 48000, 'Processed WAV contains samples and effect tails');
     await page.locator('#voice-reset').click();
     assert.equal(await page.locator('#effect-pitch').inputValue(), '0'); assert.equal(await page.locator('#effect-room').inputValue(), '0');
+    assert.equal(await page.locator('#effect-child').inputValue(), '0');
     await page.locator('#voice-delete').click(); assert.equal(await page.locator('#voice-play').isDisabled(), true);
 
     // An actual worklet recording must stop itself at exactly 20 seconds.
@@ -111,7 +112,7 @@ fs.writeFileSync(fixture, wav);
       const input = sourceContext.createBuffer(1, 44100, 44100), samples = input.getChannelData(0);
       for (let i = 0; i < samples.length; i++) samples[i] = .18 * Math.sin(2 * Math.PI * 440 * i / 44100) + .08 * Math.sin(2 * Math.PI * 1500 * i / 44100) + .05 * Math.sin(2 * Math.PI * 5000 * i / 44100);
       const dry = (await engine.exportVoice(input)).getChannelData(0); const changes = {};
-      for (const name of ['robot','echo','room','distortion','radio','pitch']) {
+    for (const name of ['child','robot','echo','room','distortion','radio','pitch']) {
         engine.effects = { ...DEFAULT_EFFECTS, [name]:name === 'pitch' ? 12 : 60 };
         const rendered = await engine.exportVoice(input), audio = rendered.getChannelData(0);
         let difference = 0, peak = 0, tailEnergy = 0;
@@ -139,7 +140,7 @@ fs.writeFileSync(fixture, wav);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
     assert.equal(overflow, false, 'Desktop layout fits 1024px');
     assert.deepEqual(errors, [], 'No unhandled browser exceptions');
-    fs.writeFileSync(path.join(output, 'verification.json'), JSON.stringify({ bounds, dsp, browser:browser.version(), errors, checks:'UI, polyphony, first click, volume, loop, voice recording/pause/reset/delete/download, 20-second cap, released microphone, six DSP effects, pitch frequency/duration, desktop layout' }, null, 2));
+    fs.writeFileSync(path.join(output, 'verification.json'), JSON.stringify({ bounds, dsp, browser:browser.version(), errors, checks:'UI, polyphony, first click, volume, loop, voice recording/pause/reset/delete/download, 20-second cap, released microphone, seven DSP effects, pitch frequency/duration, desktop layout' }, null, 2));
     console.log('PASS: interaction, audio DSP, recording/export, 20-second limit and layout.');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

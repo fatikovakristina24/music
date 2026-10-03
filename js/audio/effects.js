@@ -1,5 +1,9 @@
 /** Reusable voice effect graph: identical settings for playback and export. */
-export const DEFAULT_EFFECTS = Object.freeze({ pitch: 0, robot: 0, echo: 0, room: 0, distortion: 0, radio: 0 });
+export const DEFAULT_EFFECTS = Object.freeze({ pitch: 0, child: 0, robot: 0, echo: 0, room: 0, distortion: 0, radio: 0 });
+
+// Child voice combines a higher register with a lighter, brighter timbre.
+// It shares the pitch processor, so two pitch effects don't add extra latency.
+export function effectivePitch(settings) { return Math.max(-12, Math.min(24, settings.pitch + (settings.child || 0) * .07)); }
 
 function smooth(parameter, value, context) {
   parameter.setTargetAtTime(value, context.currentTime, .012);
@@ -28,6 +32,11 @@ export function createEffectChain(context, settings, destination, startTime = co
   const nodes = [];
   const node = (type) => { const n = context[type](); nodes.push(n); return n; };
   const input = node('createGain');
+  const childLow = node('createBiquadFilter');
+  childLow.type = 'lowshelf'; childLow.frequency.value = 500;
+  const childPresence = node('createBiquadFilter');
+  childPresence.type = 'peaking'; childPresence.frequency.value = 3000; childPresence.Q.value = .8;
+  input.connect(childLow).connect(childPresence);
   const ring = node('createGain');
   const carrier = node('createOscillator');
   carrier.frequency.value = 42;
@@ -46,7 +55,7 @@ export function createEffectChain(context, settings, destination, startTime = co
     stages[name] = { dry, wet };
     return output;
   };
-  const robotic = mix('robot', input, ring);
+  const robotic = mix('robot', childPresence, ring);
 
   const delay = node('createDelay');
   delay.delayTime.value = .28;
@@ -82,6 +91,9 @@ export function createEffectChain(context, settings, destination, startTime = co
   carrier.start(startTime);
 
   function update(values, immediate = false) {
+    const child = (values.child || 0) / 100;
+    if (immediate) { childLow.gain.value = -6 * child; childPresence.gain.value = 3 * child; }
+    else { smooth(childLow.gain, -6 * child, context); smooth(childPresence.gain, 3 * child, context); }
     for (const [name, { dry, wet }] of Object.entries(stages)) {
       const amount = values[name] / 100;
       // Echo/reverb add a tail; the other effects crossfade with the original.
@@ -101,4 +113,4 @@ export function createEffectChain(context, settings, destination, startTime = co
   };
 }
 
-export function effectTail(settings) { return Math.max(settings.echo > 0 ? 2.8 : 0, settings.room > 0 ? 1.8 : 0, settings.pitch !== 0 ? .09 : 0); }
+export function effectTail(settings) { return Math.max(settings.echo > 0 ? 2.8 : 0, settings.room > 0 ? 1.8 : 0, effectivePitch(settings) !== 0 ? .09 : 0); }

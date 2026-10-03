@@ -20,6 +20,7 @@ const synthParameters = [
 ];
 const voiceParameters = [
   { name:'pitch', label:'Высота голоса', min:-12, max:12, step:1, value:0, ends:['Ниже','Выше'], format:signed },
+  { name:'child', label:'Детский голос', min:0, max:100, step:1, value:0, ends:['Нет','100 %'] },
   { name:'robot', label:'Робот', min:0, max:100, step:1, value:0, ends:['Нет','100 %'] },
   { name:'echo', label:'Эхо', min:0, max:60, step:1, value:0, ends:['Нет','60 %'] },
   { name:'room', label:'Комната', min:0, max:100, step:1, value:0, ends:['Нет','100 %'] },

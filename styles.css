@@ -68,10 +68,10 @@ h1,h2,h3,p { margin:0; }
 fieldset { margin:0; padding:0; border:0; min-width:0; }
 .voice-controls fieldset { margin-top:26px; }
 .voice-controls fieldset:disabled { opacity:.4; }
-.voice-controls .slider-list { display:grid; gap:6px; }
-.voice-controls .slider { height:64px; }
-.voice-controls .slider input { top:17px; }
-.voice-controls .slider-ends { top:44px; }
+.voice-controls .slider-list { display:grid; gap:4px; }
+.voice-controls .slider { height:56px; }
+.voice-controls .slider input { top:13px; }
+.voice-controls .slider-ends { top:38px; font-size:12px; }
 .controls-footnote { position:absolute; top:530px; left:22px; font-size:13px; color:var(--muted); }
 .voice-copy { margin-top:28px; }
 .voice-copy h2 { font-size:30px; }

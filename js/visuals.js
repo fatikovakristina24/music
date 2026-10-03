@@ -89,7 +89,7 @@ export class SoundVisuals {
     const hasBuffer = !!this.voice.buffer;
     const amplitude = active ? 14 + this.energy * 118 : hasBuffer ? 45 : 12;
     const effects = this.engine.effects;
-    const pitch = effects.pitch / 12;
+    const pitch = (effects.pitch + (effects.child || 0) * .07) / 12;
     const phase = active ? time * (1.8 + sound.frequency * 22) : 0;
     const from = width * .09, to = width * .91, middle = height * .48;
     for (let line = 0; line < 19; line++) {
