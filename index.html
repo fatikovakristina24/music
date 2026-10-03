@@ -1,102 +1,200 @@
 <!doctype html>
 <html lang="ru">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#091423">
-  <meta name="description" content="КОНТУР — интерактивный синтезатор и лаборатория твоего голоса. Играй, слушай и наблюдай, как звук становится формой.">
-  <title>КОНТУР — звук становится формой</title>
-  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css">
-  <script type="module" src="js/app.js"></script>
-</head>
-<body>
-  <main class="instrument" aria-label="Синтезатор КОНТУР">
-    <header class="header">
-      <h1 class="brand">КОНТУР</h1>
-      <nav class="mode-switch" aria-label="Режим инструмента">
-        <button id="mode-play" class="mode selected" aria-pressed="true">Играть</button>
-        <button id="mode-voice" class="mode" aria-pressed="false">Мой голос</button>
-      </nav>
-      <button id="help-open" class="button help-button">Как это работает?</button>
-    </header>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0a0a0b" />
+    <meta
+      name="description"
+      content="КОНТУР — интерактивный синтезатор и лаборатория твоего голоса. Играй, слушай и наблюдай, как звук становится формой."
+    />
+    <title>КОНТУР — звук становится формой</title>
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="js/app.js"></script>
+  </head>
+  <body>
+    <main class="instrument" aria-label="Синтезатор КОНТУР">
+      <header class="header">
+        <h1 class="brand">КОНТУР</h1>
+        <svg class="brand-signal" viewBox="0 0 164 12" aria-hidden="true">
+          <path
+            d="M 0 5 C 18 5 28 4 38 4 S 54 10 64 7 S 81 0 91 4 S 109 8 120 6 S 143 4 164 5"
+          />
+          <circle cx="160.5" cy="4.5" r="2.5" />
+        </svg>
+        <nav class="mode-switch" aria-label="Режим инструмента">
+          <button id="mode-play" class="mode selected" aria-pressed="true">
+            Играть
+          </button>
+          <button id="mode-voice" class="mode" aria-pressed="false">
+            Мой голос
+          </button>
+        </nav>
+        <button id="help-open" class="button help-button">
+          Как это работает?
+        </button>
+      </header>
 
-    <section id="play-screen" class="screen" aria-label="Играть на синтезаторе">
-      <div class="workspace">
-        <div class="stage" id="synth-stage">
-          <p class="stage-caption" id="synth-caption">Твой звук начинается здесь</p>
-          <canvas id="synth-canvas" aria-hidden="true"></canvas>
-          <p class="stage-status" id="synth-status">Нажми любую ноту внизу ↓</p>
-        </div>
-        <aside class="controls synth-controls" aria-label="Настройки звука">
-          <h2>Выбери звучание</h2>
-          <div class="presets" aria-label="Тембр">
-            <button data-preset="soft" class="selected" aria-pressed="true">Мягкий</button>
-            <button data-preset="bass" aria-pressed="false">Басовый</button>
-            <button data-preset="bright" aria-pressed="false">Яркий</button>
+      <section
+        id="play-screen"
+        class="screen"
+        aria-label="Играть на синтезаторе"
+      >
+        <div class="workspace">
+          <div class="stage" id="synth-stage">
+            <p class="stage-caption" id="synth-caption">
+              Твой звук начинается здесь
+            </p>
+            <canvas id="synth-canvas" aria-hidden="true"></canvas>
+            <p class="stage-status" id="synth-status">
+              Нажми любую ноту внизу ↓
+            </p>
           </div>
-          <div class="slider-list" id="synth-sliders"></div>
-        </aside>
-      </div>
-      <div class="section-copy">
-        <h2>Сыграй мелодию</h2>
-        <p>Нажимай мышью или клавишами A–K. Удерживай несколько нот, чтобы услышать сочетание.</p>
-      </div>
-      <div class="pads" id="pads" aria-label="Ноты"></div>
-      <div class="loop-panel">
-        <div class="loop-copy"><h3>Твоя фраза</h3><p>Запиши до 20 секунд музыки</p></div>
-        <button id="loop-record" class="button">● Записать</button>
-        <button id="loop-play" class="button" disabled>▶ Повтор</button>
-        <button id="loop-clear" class="button" disabled>Очистить</button>
-        <p id="loop-status" role="status">Сначала запиши свою мелодию →</p>
-      </div>
-    </section>
-
-    <section id="voice-screen" class="screen" aria-label="Изменить свой голос" hidden>
-      <div class="workspace">
-        <div class="stage voice-stage" id="voice-stage">
-          <p class="stage-caption" id="voice-caption">У каждого голоса есть своя форма</p>
-          <canvas id="voice-canvas" aria-hidden="true"></canvas>
-          <p class="stage-status" id="voice-status">Запиши фразу — и посмотри, как она звучит ↓</p>
+          <aside class="controls synth-controls" aria-label="Настройки звука">
+            <h2>Выбери звучание</h2>
+            <div class="presets" aria-label="Тембр">
+              <button data-preset="soft" class="selected" aria-pressed="true">
+                Мягкий
+              </button>
+              <button data-preset="bass" aria-pressed="false">Басовый</button>
+              <button data-preset="bright" aria-pressed="false">Яркий</button>
+            </div>
+            <div class="slider-list" id="synth-sliders"></div>
+          </aside>
         </div>
-        <aside class="controls voice-controls" aria-label="Эффекты голоса">
-          <h2>Измени свой голос</h2>
-          <p class="controls-description">Сочетай эффекты и слушай результат</p>
-          <fieldset id="voice-effects" disabled><legend class="sr-only">Эффекты записи</legend><div id="voice-sliders" class="slider-list"></div></fieldset>
-          <p class="controls-footnote">Все эффекты можно сочетать</p>
-        </aside>
-      </div>
-      <div class="section-copy voice-copy">
-        <h2 id="voice-heading">Начни со своего голоса</h2>
-        <p id="voice-description">Нажми «Записать голос» и скажи что-нибудь. Можно записать до 20 секунд.</p>
-      </div>
-      <div class="voice-panel">
-        <button id="voice-record" class="button primary">● Записать голос</button>
-        <button id="voice-play" class="button" disabled>▶ Послушать</button>
-        <button id="voice-reset" class="button" disabled>Без эффектов</button>
-        <button id="voice-delete" class="button" disabled>Удалить запись</button>
-        <div class="voice-result"><p id="voice-summary" role="status">Пока нет записи</p><button id="voice-download" class="download" disabled>Скачать запись ↓</button></div>
-      </div>
-      <p class="privacy">Голос обрабатывается в браузере — загрузка на сервер не нужна.</p>
-    </section>
-  </main>
+        <div class="section-copy">
+          <h2>Сыграй мелодию</h2>
+          <p>
+            Нажимай мышью или клавишами A S D F G H J K. Удерживай несколько
+            нот, чтобы услышать сочетание.
+          </p>
+        </div>
+        <div class="pads" id="pads" aria-label="Ноты"></div>
+        <div class="loop-panel">
+          <div class="loop-copy">
+            <h3>Твоя фраза</h3>
+            <p>Запиши до 20 секунд музыки</p>
+          </div>
+          <button id="loop-record" class="button">● Записать</button>
+          <button id="loop-play" class="button" disabled>▶ Повтор</button>
+          <button id="loop-clear" class="button" disabled>Очистить</button>
+          <p id="loop-status" role="status">Сначала запиши свою мелодию →</p>
+        </div>
+      </section>
 
-  <dialog id="help-dialog" class="dialog">
-    <button class="dialog-close" id="help-close" aria-label="Закрыть инструкцию">×</button>
-    <h2>Звук — это просто</h2>
-    <ol class="help-steps">
-      <li><span>01</span><div><h3>Выбери, с чем играть</h3><p>«Играть» — ноты и электронные звуки.<br>«Мой голос» — короткая запись и эффекты.</p></div></li>
-      <li><span>02</span><div><h3>Попробуй одно действие</h3><p>В игре нажми пэд или клавишу A–K.<br>Для голоса нажми «Записать голос» и скажи фразу.</p></div></li>
-      <li><span>03</span><div><h3>Измени звук и посмотри на форму</h3><p>Выбери звучание или подвигай ползунки.<br>Чем сильнее звук, тем заметнее движение формы.</p></div></li>
-    </ol>
-    <p class="help-hint">Можно удерживать несколько нот. Музыкальный опыт не нужен.<br>В режиме голоса пробел запускает и приостанавливает прослушивание.</p>
-    <button id="help-done" class="button primary">Понятно, попробую</button>
-  </dialog>
-  <dialog id="message-dialog" class="dialog message-dialog">
-    <h2 id="message-title">Не удалось начать запись</h2>
-    <p id="message-body"></p>
-    <button id="message-close" class="button primary">Понятно</button>
-  </dialog>
-  <div class="sr-only" id="announcement" role="status" aria-live="polite"></div>
-</body>
+      <section
+        id="voice-screen"
+        class="screen"
+        aria-label="Изменить свой голос"
+        hidden
+      >
+        <div class="workspace">
+          <div class="stage voice-stage" id="voice-stage">
+            <p class="stage-caption" id="voice-caption">
+              У каждого голоса есть своя форма
+            </p>
+            <canvas id="voice-canvas" aria-hidden="true"></canvas>
+            <p class="stage-status" id="voice-status">
+              Запиши фразу — и посмотри, как она звучит ↓
+            </p>
+          </div>
+          <aside class="controls voice-controls" aria-label="Эффекты голоса">
+            <h2>Измени свой голос</h2>
+            <p class="controls-description">
+              Сочетай эффекты и слушай результат
+            </p>
+            <fieldset id="voice-effects" disabled>
+              <legend class="sr-only">Эффекты записи</legend>
+              <div id="voice-sliders" class="slider-list"></div>
+            </fieldset>
+            <p class="controls-footnote">Все эффекты можно сочетать</p>
+          </aside>
+        </div>
+        <div class="section-copy voice-copy">
+          <h2 id="voice-heading">Начни со своего голоса</h2>
+          <p id="voice-description">
+            Нажми «Записать голос» и скажи что-нибудь. Можно записать до 20
+            секунд.
+          </p>
+        </div>
+        <div class="voice-panel">
+          <button id="voice-record" class="button primary">
+            ● Записать голос
+          </button>
+          <button id="voice-play" class="button" disabled>▶ Послушать</button>
+          <button id="voice-reset" class="button" disabled>Без эффектов</button>
+          <button id="voice-delete" class="button" disabled>
+            Удалить запись
+          </button>
+          <div class="voice-result">
+            <p id="voice-summary" role="status">Пока нет записи</p>
+            <button id="voice-download" class="download" disabled>
+              Скачать запись ↓
+            </button>
+          </div>
+        </div>
+        <p class="privacy">
+          Голос обрабатывается в браузере — загрузка на сервер не нужна.
+        </p>
+      </section>
+    </main>
+
+    <dialog id="help-dialog" class="dialog" aria-labelledby="help-title">
+      <button
+        class="dialog-close"
+        id="help-close"
+        aria-label="Закрыть инструкцию"
+      >
+        ×
+      </button>
+      <h2 id="help-title">Звук — это просто</h2>
+      <ol class="help-steps">
+        <li>
+          <span>01</span>
+          <div>
+            <h3>Выбери, с чем играть</h3>
+            <p>
+              «Играть» — ноты и электронные звуки.<br />«Мой голос» — короткая
+              запись и эффекты.
+            </p>
+          </div>
+        </li>
+        <li>
+          <span>02</span>
+          <div>
+            <h3>Попробуй одно действие</h3>
+            <p>
+              В игре нажми пэд или клавиши A S D F G H J K.<br />Для голоса
+              нажми «Записать голос» и скажи фразу.
+            </p>
+          </div>
+        </li>
+        <li>
+          <span>03</span>
+          <div>
+            <h3>Измени звук и посмотри на форму</h3>
+            <p>
+              Выбери звучание или подвигай ползунки.<br />Чем сильнее звук, тем
+              заметнее движение формы.
+            </p>
+          </div>
+        </li>
+      </ol>
+      <p class="help-hint">
+        Можно удерживать несколько нот. Музыкальный опыт не нужен.<br />В режиме
+        голоса пробел запускает и приостанавливает прослушивание.
+      </p>
+      <button id="help-done" class="button primary">Понятно, попробую</button>
+    </dialog>
+    <dialog
+      id="message-dialog"
+      class="dialog message-dialog"
+      aria-labelledby="message-title"
+    >
+      <h2 id="message-title">Не удалось начать запись</h2>
+      <p id="message-body"></p>
+      <button id="message-close" class="button primary">Понятно</button>
+    </dialog>
+  </body>
 </html>

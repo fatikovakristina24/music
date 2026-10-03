@@ -1,22 +1,40 @@
-/** Reusable voice effect graph: identical settings for playback and export. */
-export const DEFAULT_EFFECTS = Object.freeze({ pitch: 0, child: 0, robot: 0, echo: 0, room: 0, distortion: 0, radio: 0 });
+/** Одна цепочка эффектов для прослушивания и экспорта WAV. */
+export const DEFAULT_EFFECTS = Object.freeze({
+  pitch: 0,
+  child: 0,
+  robot: 0,
+  echo: 0,
+  room: 0,
+  distortion: 0,
+  radio: 0,
+});
 
-// Child voice combines a higher register with a lighter, brighter timbre.
-// It shares the pitch processor, so two pitch effects don't add extra latency.
-export function effectivePitch(settings) { return Math.max(-12, Math.min(24, settings.pitch + (settings.child || 0) * .07)); }
+// Детский голос сочетает повышение тона с облегчением тембра.
+// Общий процессор высоты позволяет избежать дополнительной задержки.
+export function effectivePitch(settings) {
+  return Math.max(
+    -12,
+    Math.min(24, settings.pitch + (settings.child || 0) * 0.07),
+  );
+}
 
 function smooth(parameter, value, context) {
-  parameter.setTargetAtTime(value, context.currentTime, .012);
+  parameter.setTargetAtTime(value, context.currentTime, 0.012);
 }
 
 function reverbImpulse(context) {
-  const buffer = context.createBuffer(2, Math.ceil(context.sampleRate * 1.8), context.sampleRate);
+  const buffer = context.createBuffer(
+    2,
+    Math.ceil(context.sampleRate * 1.8),
+    context.sampleRate,
+  );
   let seed = 14731;
   for (let c = 0; c < 2; c++) {
     const samples = buffer.getChannelData(c);
     for (let i = 0; i < samples.length; i++) {
       seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
-      samples[i] = ((seed / 4294967296) * 2 - 1) * (1 - i / samples.length) ** 2.5;
+      samples[i] =
+        ((seed / 4294967296) * 2 - 1) * (1 - i / samples.length) ** 2.5;
     }
   }
   return buffer;
@@ -24,93 +42,137 @@ function reverbImpulse(context) {
 
 function distortionCurve() {
   const samples = new Float32Array(4096);
-  for (let i = 0; i < samples.length; i++) samples[i] = Math.tanh(((i * 2) / (samples.length - 1) - 1) * 7) / Math.tanh(7);
+  for (let i = 0; i < samples.length; i++)
+    samples[i] =
+      Math.tanh(((i * 2) / (samples.length - 1) - 1) * 7) / Math.tanh(7);
   return samples;
 }
 
-export function createEffectChain(context, settings, destination, startTime = context.currentTime) {
+export function createEffectChain(
+  context,
+  settings,
+  destination,
+  startTime = context.currentTime,
+) {
   const nodes = [];
-  const node = (type) => { const n = context[type](); nodes.push(n); return n; };
-  const input = node('createGain');
-  const childLow = node('createBiquadFilter');
-  childLow.type = 'lowshelf'; childLow.frequency.value = 500;
-  const childPresence = node('createBiquadFilter');
-  childPresence.type = 'peaking'; childPresence.frequency.value = 3000; childPresence.Q.value = .8;
+  const node = (type) => {
+    const n = context[type]();
+    nodes.push(n);
+    return n;
+  };
+  const input = node("createGain");
+  const childLow = node("createBiquadFilter");
+  childLow.type = "lowshelf";
+  childLow.frequency.value = 500;
+  const childPresence = node("createBiquadFilter");
+  childPresence.type = "peaking";
+  childPresence.frequency.value = 3000;
+  childPresence.Q.value = 0.8;
   input.connect(childLow).connect(childPresence);
-  const ring = node('createGain');
-  const carrier = node('createOscillator');
+  const ring = node("createGain");
+  const carrier = node("createOscillator");
   carrier.frequency.value = 42;
-  carrier.type = 'sine';
+  carrier.type = "sine";
   ring.gain.value = 0;
   carrier.connect(ring.gain);
   const stages = {};
 
   const mix = (name, from, effectIn, effectOut = effectIn) => {
-    const dry = node('createGain');
-    const wet = node('createGain');
-    const output = node('createGain');
+    const dry = node("createGain");
+    const wet = node("createGain");
+    const output = node("createGain");
     from.connect(dry).connect(output);
     from.connect(effectIn);
     effectOut.connect(wet).connect(output);
     stages[name] = { dry, wet };
     return output;
   };
-  const robotic = mix('robot', childPresence, ring);
+  const robotic = mix("robot", childPresence, ring);
 
-  const delay = node('createDelay');
-  delay.delayTime.value = .28;
-  const feedback = node('createGain');
-  feedback.gain.value = .38;
-  const echoTone = node('createBiquadFilter');
-  echoTone.type = 'lowpass'; echoTone.frequency.value = 3800;
+  const delay = node("createDelay");
+  delay.delayTime.value = 0.28;
+  const feedback = node("createGain");
+  feedback.gain.value = 0.38;
+  const echoTone = node("createBiquadFilter");
+  echoTone.type = "lowpass";
+  echoTone.frequency.value = 3800;
   delay.connect(echoTone).connect(feedback).connect(delay);
-  const echoed = mix('echo', robotic, delay, echoTone);
+  const echoed = mix("echo", robotic, delay, echoTone);
 
-  const room = node('createConvolver');
+  const room = node("createConvolver");
   room.buffer = reverbImpulse(context);
-  const spacious = mix('room', echoed, room);
+  const spacious = mix("room", echoed, room);
 
-  const distortion = node('createWaveShaper');
-  distortion.curve = distortionCurve(); distortion.oversample = '4x';
-  const compensation = node('createGain');
-  compensation.gain.value = .4;
+  const distortion = node("createWaveShaper");
+  distortion.curve = distortionCurve();
+  distortion.oversample = "4x";
+  const compensation = node("createGain");
+  compensation.gain.value = 0.4;
   distortion.connect(compensation);
-  const distorted = mix('distortion', spacious, distortion, compensation);
+  const distorted = mix("distortion", spacious, distortion, compensation);
 
-  const high = node('createBiquadFilter');
-  high.type = 'highpass'; high.frequency.value = 650; high.Q.value = .7;
-  const low = node('createBiquadFilter');
-  low.type = 'lowpass'; low.frequency.value = 2400; low.Q.value = .7;
+  const high = node("createBiquadFilter");
+  high.type = "highpass";
+  high.frequency.value = 650;
+  high.Q.value = 0.7;
+  const low = node("createBiquadFilter");
+  low.type = "lowpass";
+  low.frequency.value = 2400;
+  low.Q.value = 0.7;
   high.connect(low);
-  const radio = mix('radio', distorted, high, low);
+  const radio = mix("radio", distorted, high, low);
 
-  const compressor = node('createDynamicsCompressor');
-  compressor.threshold.value = -8; compressor.knee.value = 12;
-  compressor.ratio.value = 4; compressor.attack.value = .006; compressor.release.value = .12;
+  const compressor = node("createDynamicsCompressor");
+  compressor.threshold.value = -8;
+  compressor.knee.value = 12;
+  compressor.ratio.value = 4;
+  compressor.attack.value = 0.006;
+  compressor.release.value = 0.12;
   radio.connect(compressor).connect(destination);
   carrier.start(startTime);
 
   function update(values, immediate = false) {
     const child = (values.child || 0) / 100;
-    if (immediate) { childLow.gain.value = -6 * child; childPresence.gain.value = 3 * child; }
-    else { smooth(childLow.gain, -6 * child, context); smooth(childPresence.gain, 3 * child, context); }
+    if (immediate) {
+      childLow.gain.value = -6 * child;
+      childPresence.gain.value = 3 * child;
+    } else {
+      smooth(childLow.gain, -6 * child, context);
+      smooth(childPresence.gain, 3 * child, context);
+    }
     for (const [name, { dry, wet }] of Object.entries(stages)) {
       const amount = values[name] / 100;
-      // Echo/reverb add a tail; the other effects crossfade with the original.
-      const dryValue = name === 'echo' || name === 'room' ? 1 : 1 - amount;
-      const wetValue = name === 'room' ? amount * .7 : amount;
-      if (immediate) { dry.gain.value = dryValue; wet.gain.value = wetValue; }
-      else { smooth(dry.gain, dryValue, context); smooth(wet.gain, wetValue, context); }
+      // Эхо и комната добавляются к оригиналу; остальные эффекты смешиваются с ним.
+      const dryValue = name === "echo" || name === "room" ? 1 : 1 - amount;
+      const wetValue = name === "room" ? amount * 0.7 : amount;
+      if (immediate) {
+        dry.gain.value = dryValue;
+        wet.gain.value = wetValue;
+      } else {
+        smooth(dry.gain, dryValue, context);
+        smooth(wet.gain, wetValue, context);
+      }
     }
   }
   update(settings, true);
   return {
-    input, update,
+    input,
+    update,
     dispose() {
-      try { carrier.stop(); } catch { /* Already stopped. */ }
+      try {
+        carrier.stop();
+      } catch {
+        /* Осциллятор уже остановлен. */
+      }
       for (const n of nodes) n.disconnect();
     },
   };
 }
 
-export function effectTail(settings) { return Math.max(settings.echo > 0 ? 2.8 : 0, settings.room > 0 ? 1.8 : 0, effectivePitch(settings) !== 0 ? .09 : 0); }
+export function effectTail(settings) {
+  return Math.max(
+    settings.echo > 0 ? 2.8 : 0,
+    settings.room > 0 ? 1.8 : 0,
+    effectivePitch(settings) !== 0 ? 0.09 : 0,
+  );
+}

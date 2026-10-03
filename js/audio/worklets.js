@@ -1,10 +1,21 @@
-import { PitchShifter } from './pitch-dsp.js';
+import { PitchShifter } from "./pitch-dsp.js";
 
 class VoicePitchProcessor extends AudioWorkletProcessor {
   static get parameterDescriptors() {
-    return [{ name: 'semitones', defaultValue: 0, minValue: -12, maxValue: 24, automationRate: 'k-rate' }];
+    return [
+      {
+        name: "semitones",
+        defaultValue: 0,
+        minValue: -12,
+        maxValue: 24,
+        automationRate: "k-rate",
+      },
+    ];
   }
-  constructor() { super(); this.channels = []; }
+  constructor() {
+    super();
+    this.channels = [];
+  }
   process(inputs, outputs, parameters) {
     const input = inputs[0];
     const output = outputs[0];
@@ -12,34 +23,42 @@ class VoicePitchProcessor extends AudioWorkletProcessor {
       this.channels[c] ??= new PitchShifter(sampleRate);
       const from = input[c] || input[0];
       const to = output[c];
-      for (let i = 0; i < to.length; i++) to[i] = this.channels[c].process(from?.[i] || 0, parameters.semitones[0]);
+      for (let i = 0; i < to.length; i++)
+        to[i] = this.channels[c].process(
+          from?.[i] || 0,
+          parameters.semitones[0],
+        );
     }
     return true;
   }
 }
 
-// Capture PCM directly: no codec dependencies, no microphone monitoring.
+// Записываем PCM напрямую, без кодеков и вывода микрофона в колонки.
 class VoiceCaptureProcessor extends AudioWorkletProcessor {
   constructor(options) {
     super();
-    this.limit = Math.round(sampleRate * (options.processorOptions?.maxSeconds || 20));
+    this.limit = Math.round(
+      sampleRate * (options.processorOptions?.maxSeconds || 20),
+    );
     this.chunk = new Float32Array(4096);
     this.offset = 0;
     this.total = 0;
     this.done = false;
-    this.port.onmessage = ({ data }) => { if (data === 'stop') this.finish(); };
+    this.port.onmessage = ({ data }) => {
+      if (data === "stop") this.finish();
+    };
   }
   flush() {
     if (!this.offset) return;
     const chunk = this.chunk.slice(0, this.offset);
-    this.port.postMessage({ type: 'chunk', samples: chunk }, [chunk.buffer]);
+    this.port.postMessage({ type: "chunk", samples: chunk }, [chunk.buffer]);
     this.offset = 0;
   }
   finish() {
     if (this.done) return;
     this.flush();
     this.done = true;
-    this.port.postMessage({ type: 'done', samples: this.total });
+    this.port.postMessage({ type: "done", samples: this.total });
   }
   process(inputs, outputs) {
     for (const output of outputs[0]) output.fill(0);
@@ -56,5 +75,5 @@ class VoiceCaptureProcessor extends AudioWorkletProcessor {
   }
 }
 
-registerProcessor('contour-pitch', VoicePitchProcessor);
-registerProcessor('contour-capture', VoiceCaptureProcessor);
+registerProcessor("contour-pitch", VoicePitchProcessor);
+registerProcessor("contour-capture", VoiceCaptureProcessor);
