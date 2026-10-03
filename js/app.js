@@ -1,5 +1,5 @@
 import { AudioEngine, NOTES } from './audio/engine.js';
-import { NoteLoop } from './loop.js';
+import { NoteLoop, LOOP_LIMIT_SECONDS } from './loop.js';
 import { VoiceRecorder } from './voice.js';
 import { SoundVisuals } from './visuals.js';
 
@@ -134,7 +134,7 @@ function updateLoop() {
   $('#loop-play').classList.toggle('active', playing);
   $('#loop-play').disabled = !loop.notes.length || recording;
   $('#loop-clear').disabled = loop.state === 'empty' || recording;
-  $('#loop-status').textContent = recording ? 'Записываем · 0.0 / 8.0 s' : playing ? `Повторяем · ${decimals(loop.duration)} секунды` : loop.notes.length ? `Фраза · ${decimals(loop.duration)} секунды` : 'Сначала запиши свою мелодию →';
+  $('#loop-status').textContent = recording ? `Записываем · 0.0 / ${decimals(LOOP_LIMIT_SECONDS)} s` : playing ? `Повторяем · ${decimals(loop.duration)} секунды` : loop.notes.length ? `Фраза · ${decimals(loop.duration)} секунды` : 'Сначала запиши свою мелодию →';
 }
 
 $('#voice-record').addEventListener('click', () => safe(() => voice.record()));
@@ -205,7 +205,7 @@ try {
       $('#synth-caption').textContent = active ? 'Звук становится формой' : 'Твой звук начинается здесь';
       const labels = [...new Set(sounding.map(v => NOTES[v.index].label))];
       $('#synth-status').textContent = active ? `${labels.join(' + ')} · ${engine.synthSettings.preset === 'soft' ? 'Мягкий' : engine.synthSettings.preset === 'bass' ? 'Басовый' : 'Яркий'} звук` : 'Нажми любую ноту внизу ↓';
-      if (loop.state === 'recording') $('#loop-status').textContent = `Записываем · ${decimals(loop.elapsed)} / 8.0 s`;
+      if (loop.state === 'recording') $('#loop-status').textContent = `Записываем · ${decimals(loop.elapsed)} / ${decimals(LOOP_LIMIT_SECONDS)} s`;
     } else {
       if (voice.state === 'recording') $('#voice-status').textContent = `Записываем · ${decimals(voice.elapsed)} / 20.0 секунды`;
       if (voice.state === 'playing') $('#voice-status').textContent = `Слушаем запись · ${decimals(voice.elapsed)} / ${decimals(voice.buffer.duration)} секунды`;

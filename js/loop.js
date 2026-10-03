@@ -1,6 +1,8 @@
 /** Records note gestures, then schedules repetitions against the audio clock.
  * The timer only queues notes; AudioContext determines their actual timing.
  */
+export const LOOP_LIMIT_SECONDS = 20;
+
 export class NoteLoop extends EventTarget {
   constructor(engine) {
     super(); this.engine = engine; this.state = 'empty'; this.notes = [];
@@ -10,23 +12,23 @@ export class NoteLoop extends EventTarget {
   startRecording() {
     this.stopPlayback(); this.notes = []; this.pending.clear();
     this.started = this.engine.context.currentTime; this.state = 'recording';
-    this.timeout = setTimeout(() => this.finishRecording(), 8000); this.changed();
+    this.timeout = setTimeout(() => this.finishRecording(), LOOP_LIMIT_SECONDS * 1000); this.changed();
   }
   noteOn(token, index) {
     if (this.state !== 'recording') return;
     const time = this.engine.context.currentTime - this.started;
-    if (time < 8) this.pending.set(token, { index, time });
+    if (time < LOOP_LIMIT_SECONDS) this.pending.set(token, { index, time });
   }
   noteOff(token) {
     const note = this.pending.get(token);
     if (!note) return;
-    this.notes.push({ ...note, duration:Math.max(.04, Math.min(8, this.engine.context.currentTime - this.started) - note.time) });
+    this.notes.push({ ...note, duration:Math.max(.04, Math.min(LOOP_LIMIT_SECONDS, this.engine.context.currentTime - this.started) - note.time) });
     this.pending.delete(token);
   }
   finishRecording() {
     if (this.state !== 'recording') return;
     clearTimeout(this.timeout);
-    this.duration = Math.max(.3, Math.min(8, this.engine.context.currentTime - this.started));
+    this.duration = Math.max(.3, Math.min(LOOP_LIMIT_SECONDS, this.engine.context.currentTime - this.started));
     for (const note of this.pending.values()) this.notes.push({ ...note, duration:Math.max(.04, this.duration - note.time) });
     this.pending.clear(); this.notes.sort((a, b) => a.time - b.time);
     this.state = this.notes.length ? 'ready' : 'empty'; this.changed();
@@ -59,5 +61,5 @@ export class NoteLoop extends EventTarget {
     clearTimeout(this.timeout); this.stopPlayback();
     this.pending.clear(); this.notes = []; this.duration = 0; this.state = 'empty'; this.changed();
   }
-  get elapsed() { return this.state === 'recording' ? Math.min(8, this.engine.context.currentTime - this.started) : 0; }
+  get elapsed() { return this.state === 'recording' ? Math.min(LOOP_LIMIT_SECONDS, this.engine.context.currentTime - this.started) : 0; }
 }
