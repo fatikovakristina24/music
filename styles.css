@@ -93,24 +93,6 @@ p {
   letter-spacing: -1.76px;
   margin-top: -2.5px;
 }
-.brand-signal {
-  position: absolute;
-  top: 58px;
-  left: 0;
-  width: 164px;
-  height: 12px;
-  overflow: visible;
-  pointer-events: none;
-}
-.brand-signal path {
-  fill: none;
-  stroke: var(--signal);
-  stroke-width: 1;
-  opacity: 0.65;
-}
-.brand-signal circle {
-  fill: var(--accent);
-}
 .mode-switch {
   position: absolute;
   left: 50%;
@@ -318,15 +300,6 @@ p {
 .slider input:disabled {
   cursor: default;
 }
-.slider-ends {
-  position: absolute;
-  top: 60px;
-  left: 0;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  color: var(--muted);
-}
 .section-copy {
   margin-top: 38px;
 }
@@ -481,10 +454,6 @@ fieldset {
 }
 .voice-controls .slider input {
   top: 13px;
-}
-.voice-controls .slider-ends {
-  top: 38px;
-  font-size: 12px;
 }
 .controls-footnote {
   position: absolute;

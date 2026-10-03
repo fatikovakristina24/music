@@ -1,96 +1,5 @@
 const INK = "#f3f3f0";
 const SIGNAL = "#a9b2ff";
-const BLUE = "#1f2bff";
-const GRID = "#2a2b2e";
-
-function drawSignalField(ctx, height, voice, energy, time) {
-  ctx.save();
-  ctx.strokeStyle = GRID;
-  ctx.globalAlpha = 0.42;
-  ctx.lineWidth = 0.6;
-  ctx.beginPath();
-  for (let x = 176; x <= 776; x += 100) {
-    ctx.moveTo(x, 78);
-    ctx.lineTo(x, height - 74);
-  }
-  for (let y = 100; y < height - 60; y += 60) {
-    ctx.moveTo(84, y);
-    ctx.lineTo(864, y);
-  }
-  ctx.stroke();
-  ctx.strokeStyle = SIGNAL;
-  ctx.globalAlpha = 0.36;
-  ctx.lineWidth = 0.8;
-  ctx.beginPath();
-  for (let i = 0; i < 25; i++) {
-    const y = 90 + (i * (height - 178)) / 24;
-    const size = i % 4 === 0 ? 12 : 5;
-    ctx.moveTo(28, y);
-    ctx.lineTo(28 + size, y);
-    ctx.moveTo(924 - size, y);
-    ctx.lineTo(924, y);
-  }
-  ctx.stroke();
-  ctx.globalAlpha = 0.44;
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  for (const [x, direction] of [
-    [70, 1],
-    [882, -1],
-  ]) {
-    for (const [y, vertical] of [
-      [66, 1],
-      [height - 66, -1],
-    ]) {
-      ctx.moveTo(x, y + vertical * 10);
-      ctx.lineTo(x, y);
-      ctx.lineTo(x + direction * 10, y);
-    }
-  }
-  ctx.stroke();
-  if (voice) {
-    ctx.globalAlpha = 0.22;
-    ctx.lineWidth = 0.6;
-    ctx.beginPath();
-    for (let i = 0; i < 45; i++) {
-      ctx.moveTo(90 + i * 17, 277);
-      ctx.lineTo(90 + i * 17, 283);
-    }
-    ctx.stroke();
-  } else {
-    ctx.globalAlpha = 0.26 + Math.min(1, energy * 4) * 0.24;
-    ctx.lineWidth = 0.8;
-    ctx.beginPath();
-    for (let i = 0; i < 96; i++) {
-      const angle = (i / 96) * Math.PI * 2;
-      const end = 197 + (i % 8 === 0 ? 9 : 3);
-      ctx.moveTo(476 + Math.cos(angle) * 197, 220 + Math.sin(angle) * 197);
-      ctx.lineTo(476 + Math.cos(angle) * end, 220 + Math.sin(angle) * end);
-    }
-    ctx.stroke();
-    const start = -0.6 + Math.sin(time * 0.5) * energy * 0.5;
-    const end = start + 0.663 + energy * 0.2;
-    ctx.strokeStyle = BLUE;
-    ctx.globalAlpha = 0.4 + energy * 0.45;
-    ctx.lineWidth = 2.4;
-    ctx.beginPath();
-    ctx.arc(476, 220, 209, start, end);
-    ctx.stroke();
-    ctx.fillStyle = SIGNAL;
-    ctx.globalAlpha = 0.45 + energy * 0.55;
-    ctx.beginPath();
-    ctx.arc(
-      476 + Math.cos(end) * 209,
-      220 + Math.sin(end) * 209,
-      3,
-      0,
-      Math.PI * 2,
-    );
-    ctx.fill();
-  }
-  ctx.restore();
-}
-
 function analyserState(analyser, storage) {
   if (!analyser) return { rms: 0, frequency: 0 };
   analyser.getFloatTimeDomainData(storage.wave);
@@ -173,7 +82,6 @@ export class SoundVisuals {
     ctx.clearRect(0, 0, width, height);
     ctx.save();
     ctx.scale(width / 952, height / 440);
-    drawSignalField(ctx, 440, false, this.energy, time);
     const notes = [...this.engine.voices].filter(
       (v) => v.start <= now && v.end > now,
     );
@@ -218,21 +126,6 @@ export class SoundVisuals {
       ctx.lineWidth = idle.width;
       ctx.stroke();
     }
-    if (this.shapeMix > 0.02) {
-      ctx.globalAlpha = this.shapeMix;
-      ctx.fillStyle = SIGNAL;
-      ctx.beginPath();
-      ctx.arc(880, 402, 5, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.globalAlpha = 0.9;
-    ctx.strokeStyle = this.energy > 0.025 ? SIGNAL : INK;
-    ctx.beginPath();
-    ctx.moveTo(464, 214);
-    ctx.lineTo(472, 214);
-    ctx.moveTo(468, 210);
-    ctx.lineTo(468, 218);
-    ctx.stroke();
     ctx.restore();
   }
   drawVoice(time, sound) {
@@ -244,25 +137,6 @@ export class SoundVisuals {
     ctx.clearRect(0, 0, width, height);
     ctx.save();
     ctx.scale(width / 952, height / 560);
-    drawSignalField(ctx, 560, true, this.energy, time);
-    if (
-      ["recording", "playing"].includes(this.voice.state) ||
-      this.energy > 0.02
-    ) {
-      ctx.strokeStyle = SIGNAL;
-      ctx.globalAlpha = 0.65;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      for (let bar = 0; bar < 12; bar++) {
-        let level = 0;
-        for (let bin = bar * 8; bin < (bar + 1) * 8; bin++)
-          level = Math.max(level, this.voiceStorage.spectrum[bin]);
-        const barHeight = (level / 255) * 34;
-        ctx.moveTo(844 + bar * 6, 114 - barHeight);
-        ctx.lineTo(844 + bar * 6, 114);
-      }
-      ctx.stroke();
-    }
     const active =
       ["recording", "playing"].includes(this.voice.state) || this.energy > 0.02;
     if (active || this.voice.buffer) {

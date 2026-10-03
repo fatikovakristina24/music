@@ -28,7 +28,6 @@ const synthParameters = [
     max: 4,
     step: 0.1,
     value: 1.8,
-    ends: ["0.1", "4.0"],
     format: (value) => `${decimals(value)} s`,
   },
   {
@@ -38,7 +37,6 @@ const synthParameters = [
     max: 60,
     step: 1,
     value: 24,
-    ends: ["0", "60"],
     format: (value) => `${value} %`,
   },
   {
@@ -48,7 +46,6 @@ const synthParameters = [
     max: 100,
     step: 1,
     value: 65,
-    ends: ["0", "100"],
     format: (value) => `${value} %`,
   },
 ];
@@ -60,7 +57,6 @@ const voiceParameters = [
     max: 12,
     step: 1,
     value: 0,
-    ends: ["Ниже", "Выше"],
     format: signed,
   },
   {
@@ -70,7 +66,6 @@ const voiceParameters = [
     max: 100,
     step: 1,
     value: 0,
-    ends: ["Нет", "100 %"],
   },
   {
     name: "robot",
@@ -79,7 +74,6 @@ const voiceParameters = [
     max: 100,
     step: 1,
     value: 0,
-    ends: ["Нет", "100 %"],
   },
   {
     name: "echo",
@@ -88,7 +82,6 @@ const voiceParameters = [
     max: 60,
     step: 1,
     value: 0,
-    ends: ["Нет", "60 %"],
   },
   {
     name: "room",
@@ -97,7 +90,6 @@ const voiceParameters = [
     max: 100,
     step: 1,
     value: 0,
-    ends: ["Нет", "100 %"],
   },
   {
     name: "distortion",
@@ -106,7 +98,6 @@ const voiceParameters = [
     max: 100,
     step: 1,
     value: 0,
-    ends: ["Нет", "100 %"],
   },
   {
     name: "radio",
@@ -115,7 +106,6 @@ const voiceParameters = [
     max: 100,
     step: 1,
     value: 0,
-    ends: ["Нет", "100 %"],
   },
 ];
 
@@ -124,7 +114,7 @@ function slider(container, config, prefix, onChange) {
     format = config.format || ((value) => `${value} %`);
   const element = document.createElement("div");
   element.className = "slider";
-  element.innerHTML = `<div class="slider-top"><label for="${id}">${config.label}</label><output for="${id}"></output></div><input id="${id}" type="range" min="${config.min}" max="${config.max}" step="${config.step}" value="${config.value}"><div class="slider-ends" aria-hidden="true"><span>${config.ends[0] === "0" ? "" : config.ends[0]}</span><span>${config.ends[1]}</span></div>`;
+  element.innerHTML = `<div class="slider-top"><label for="${id}">${config.label}</label><output for="${id}"></output></div><input id="${id}" type="range" min="${config.min}" max="${config.max}" step="${config.step}" value="${config.value}">`;
   const input = element.querySelector("input"),
     output = element.querySelector("output");
   const display = () => {
