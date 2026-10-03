@@ -322,8 +322,12 @@ p {
 .pad {
   height: 144px;
   position: relative;
-  background: var(--paper);
-  border: 1px solid var(--line);
+  --note-color: #202a75;
+  --note-active: #6574ff;
+  --note-ink: var(--ink);
+  background: var(--note-color);
+  color: var(--note-ink);
+  border: 1px solid var(--note-color);
   border-radius: 24px;
   text-align: left;
   padding: 0 18px;
@@ -333,6 +337,36 @@ p {
     box-shadow 0.2s;
   touch-action: none;
   user-select: none;
+}
+.pad:nth-child(2) {
+  --note-color: #343ba0;
+  --note-active: #7780ff;
+}
+.pad:nth-child(3) {
+  --note-color: #424fbd;
+  --note-active: #8995ff;
+}
+.pad:nth-child(4) {
+  --note-color: #555ccc;
+  --note-active: #9b9fff;
+}
+.pad:nth-child(5) {
+  --note-color: #6859ae;
+  --note-active: #a994e3;
+}
+.pad:nth-child(6) {
+  --note-color: #7968bf;
+  --note-active: #b7a4ec;
+}
+.pad:nth-child(7) {
+  --note-color: #938bd3;
+  --note-active: #c3b8f5;
+  --note-ink: #101124;
+}
+.pad:nth-child(8) {
+  --note-color: #a9b2ff;
+  --note-active: #d3d8ff;
+  --note-ink: #101124;
 }
 .pad .note {
   font-weight: 500;
@@ -347,28 +381,26 @@ p {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: var(--line);
-  color: var(--muted);
+  background: #0a0a0b;
+  color: var(--ink);
   font-size: 14px;
   display: grid;
   place-items: center;
 }
 .pad:hover {
-  background: #222228;
-  border-color: var(--accent);
+  border-color: var(--note-active);
 }
 .pad.pressed {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--on-accent);
+  background: var(--note-active);
+  border-color: var(--note-active);
+  color: #101124;
 }
 .pad.pressed .key {
   background: var(--paper);
   color: var(--ink);
 }
 .pad.releasing {
-  border-color: var(--accent);
-  background: var(--tint);
+  border-color: var(--note-active);
 }
 .pad-wave {
   position: absolute;
@@ -379,7 +411,7 @@ p {
 }
 .pad-wave path {
   fill: none;
-  stroke: var(--signal);
+  stroke: currentColor;
   stroke-width: 1;
   opacity: 0.48;
   transform-origin: 74px 122px;
