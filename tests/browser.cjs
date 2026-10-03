@@ -100,6 +100,36 @@ fs.writeFileSync(fixture, wav);
     assert.ok(Math.abs(bounds[".pads"].y - 674) < 1);
     assert.ok(Math.abs(bounds[".loop-panel"].y - 850) < 1);
 
+    for (const width of [1280, 775]) {
+      await page.setViewportSize({ width, height: 960 });
+      await page.waitForFunction(
+        () =>
+          Math.abs(
+            document.querySelector(".instrument").getBoundingClientRect()
+              .width - innerWidth,
+          ) < 1,
+      );
+      const scaled = await page.evaluate(() => {
+        const stage = document
+          .querySelector("#synth-stage")
+          .getBoundingClientRect();
+        return {
+          x: stage.x,
+          width: stage.width,
+          height: stage.height,
+          overflow: document.documentElement.scrollWidth > innerWidth,
+        };
+      });
+      assert.ok(Math.abs(scaled.x - (48 * width) / 1440) < 1);
+      assert.ok(Math.abs(scaled.width / scaled.height - 952 / 440) < 0.01);
+      assert.equal(
+        scaled.overflow,
+        false,
+        "The complete Figma composition fits the window",
+      );
+    }
+    await page.setViewportSize({ width: 1440, height: 960 });
+
     // The first quick click must unlock audio and still produce a note.
     await page.locator(".pad").first().click();
     await page.waitForFunction(

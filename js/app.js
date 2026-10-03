@@ -4,6 +4,12 @@ import { VoiceRecorder, VOICE_LIMIT_SECONDS } from "./voice.js";
 import { SoundVisuals } from "./visuals.js";
 
 const $ = (selector) => document.querySelector(selector);
+// Масштабируем весь desktop-макет, сохраняя его композицию.
+function fitStudio() {
+  $(".instrument").style.zoom = Math.min(1, window.innerWidth / 1440);
+}
+fitStudio();
+window.addEventListener("resize", fitStudio);
 const engine = new AudioEngine();
 const loop = new NoteLoop(engine);
 const voice = new VoiceRecorder(engine);
@@ -118,7 +124,7 @@ function slider(container, config, prefix, onChange) {
     format = config.format || ((value) => `${value} %`);
   const element = document.createElement("div");
   element.className = "slider";
-  element.innerHTML = `<div class="slider-top"><label for="${id}">${config.label}</label><output for="${id}"></output></div><input id="${id}" type="range" min="${config.min}" max="${config.max}" step="${config.step}" value="${config.value}"><div class="slider-ends" aria-hidden="true"><span>${config.ends[0]}</span><span>${config.ends[1]}</span></div>`;
+  element.innerHTML = `<div class="slider-top"><label for="${id}">${config.label}</label><output for="${id}"></output></div><input id="${id}" type="range" min="${config.min}" max="${config.max}" step="${config.step}" value="${config.value}"><div class="slider-ends" aria-hidden="true"><span>${config.ends[0] === "0" ? "" : config.ends[0]}</span><span>${config.ends[1]}</span></div>`;
   const input = element.querySelector("input"),
     output = element.querySelector("output");
   const display = () => {
@@ -473,7 +479,7 @@ async function safe(action, title) {
 let visuals;
 try {
   const response = await fetch(
-    new URL("../assets/contours.json", import.meta.url),
+    new URL("../assets/contours.json?v=2", import.meta.url),
   );
   if (!response.ok)
     throw new Error(
@@ -500,11 +506,13 @@ try {
       const active = sounding.length > 0;
       $("#synth-stage").classList.toggle("sounding", active);
       $("#synth-caption").textContent = active
-        ? "Звук становится формой"
+        ? sounding.length > 1
+          ? "Сейчас звучит аккорд"
+          : "Звучит твоя первая нота"
         : "Твой звук начинается здесь";
       const labels = [...new Set(sounding.map((v) => NOTES[v.index].label))];
       $("#synth-status").textContent = active
-        ? `${labels.join(" + ")} · ${engine.synthSettings.preset === "soft" ? "Мягкий" : engine.synthSettings.preset === "bass" ? "Басовый" : "Яркий"} звук`
+        ? labels.join(" + ")
         : "Нажми любую ноту внизу ↓";
       if (loop.state === "recording")
         $("#loop-status").textContent =

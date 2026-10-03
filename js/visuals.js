@@ -58,7 +58,7 @@ function drawSignalField(ctx, height, voice, energy, time) {
     }
     ctx.stroke();
   } else {
-    ctx.globalAlpha = 0.26 + energy * 0.24;
+    ctx.globalAlpha = 0.26 + Math.min(1, energy * 4) * 0.24;
     ctx.lineWidth = 0.8;
     ctx.beginPath();
     for (let i = 0; i < 96; i++) {
@@ -120,6 +120,7 @@ export class SoundVisuals {
     this.voiceCanvas = document.querySelector("#voice-canvas");
     this.mode = "play";
     this.energy = 0;
+    this.shapeMix = 0;
     this.reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
     this.storage = {
       wave: new Float32Array(2048),
@@ -141,8 +142,8 @@ export class SoundVisuals {
     for (const canvas of [this.synthCanvas, this.voiceCanvas]) {
       const rect = canvas.getBoundingClientRect();
       if (!rect.width) continue;
-      canvas.width = Math.round(rect.width * dpr);
-      canvas.height = Math.round(rect.height * dpr);
+      canvas.width = Math.round(canvas.clientWidth * dpr);
+      canvas.height = Math.round(canvas.clientHeight * dpr);
       canvas.getContext("2d").setTransform(dpr, 0, 0, dpr, 0, 0);
     }
   }
@@ -179,14 +180,25 @@ export class SoundVisuals {
     const average = notes.length
       ? notes.reduce((sum, v) => sum + v.index, 0) / notes.length
       : 3;
-    const motion = this.energy * (this.reducedMotion ? 4 : 24);
-    for (let line = 0; line < this.geometry.length; line++) {
-      const contour = this.geometry[line];
-      const points = contour.points;
-      const curve = [];
-      for (let i = 0; i < points.length; i += 2) {
-        const x = 116 + contour.x + points[i],
-          y = 4 + contour.y + points[i + 1];
+    const target = notes.length > 1 ? this.geometry.chord : this.geometry.note;
+    this.shapeMix +=
+      ((notes.length || this.energy > 0.025 ? 1 : 0) - this.shapeMix) * 0.14;
+    const motion = this.energy * (this.reducedMotion ? 1 : 5);
+    for (let line = 0; line < this.geometry.idle.length; line++) {
+      const idle = this.geometry.idle[line];
+      const playing = target[line];
+      ctx.beginPath();
+      for (let i = 0; i < idle.points.length; i += 2) {
+        const x =
+          idle.x +
+          idle.points[i] +
+          (playing.x + playing.points[i] - idle.x - idle.points[i]) *
+            this.shapeMix;
+        const y =
+          idle.y +
+          idle.points[i + 1] +
+          (playing.y + playing.points[i + 1] - idle.y - idle.points[i + 1]) *
+            this.shapeMix;
         const angle = Math.atan2((y - 212) * 1.4, x - 468);
         const modulation =
           motion *
@@ -197,27 +209,21 @@ export class SoundVisuals {
           );
         const px = x + Math.cos(angle) * modulation;
         const py = y + Math.sin(angle) * modulation;
-        curve.push([px, py]);
-      }
-      ctx.beginPath();
-      const first = curve[0],
-        last = curve[curve.length - 1];
-      ctx.moveTo((last[0] + first[0]) / 2, (last[1] + first[1]) / 2);
-      for (let i = 0; i < curve.length; i++) {
-        const point = curve[i],
-          next = curve[(i + 1) % curve.length];
-        ctx.quadraticCurveTo(
-          point[0],
-          point[1],
-          (point[0] + next[0]) / 2,
-          (point[1] + next[1]) / 2,
-        );
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
       }
       ctx.closePath();
-      ctx.strokeStyle = this.energy > 0.025 ? SIGNAL : INK;
-      ctx.globalAlpha = 0.42 + (line / this.geometry.length) * 0.5;
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = this.shapeMix > 0.1 ? SIGNAL : INK;
+      ctx.globalAlpha = idle.opacity;
+      ctx.lineWidth = idle.width;
       ctx.stroke();
+    }
+    if (this.shapeMix > 0.02) {
+      ctx.globalAlpha = this.shapeMix;
+      ctx.fillStyle = SIGNAL;
+      ctx.beginPath();
+      ctx.arc(880, 402, 5, 0, Math.PI * 2);
+      ctx.fill();
     }
     ctx.globalAlpha = 0.9;
     ctx.strokeStyle = this.energy > 0.025 ? SIGNAL : INK;
@@ -257,42 +263,50 @@ export class SoundVisuals {
       }
       ctx.stroke();
     }
-    ctx.restore();
     const active =
       ["recording", "playing"].includes(this.voice.state) || this.energy > 0.02;
-    const hasBuffer = !!this.voice.buffer;
-    const amplitude = active ? 14 + this.energy * 118 : hasBuffer ? 45 : 12;
-    const effects = this.engine.effects;
-    const pitch = (effects.pitch + (effects.child || 0) * 0.07) / 12;
-    const phase = active ? time * (1.8 + sound.frequency * 22) : 0;
-    const from = width * 0.09,
-      to = width * 0.91,
-      middle = height * 0.48;
-    for (let line = 0; line < 19; line++) {
-      ctx.beginPath();
-      for (let i = 0; i <= 180; i++) {
-        const u = i / 180,
-          envelope = Math.sin(Math.PI * u) ** 1.4;
-        const primary = Math.sin(
-          u * Math.PI * (5.2 + pitch * 1.5) + phase + line * 0.085,
-        );
-        const harmonic =
-          Math.sin(u * Math.PI * 11 - phase * 0.65 + line * 0.04) *
-          (0.32 + effects.robot / 300);
-        const distortion = (Math.sin(primary * 4) * effects.distortion) / 400;
-        const depth = 0.32 + line / 28;
-        const y =
-          middle +
-          envelope * (primary + harmonic + distortion) * amplitude * depth;
-        const x = from + u * (to - from);
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
+    if (active || this.voice.buffer) {
+      const traces = active
+        ? this.geometry.voicePlaying
+        : this.geometry.voiceRecorded;
+      const effects = this.engine.effects;
+      const pitch = (effects.pitch + (effects.child || 0) * 0.07) / 12;
+      for (let line = 0; line < traces.length; line++) {
+        const trace = traces[line];
+        ctx.beginPath();
+        for (let i = 0; i < trace.points.length; i += 2) {
+          const x = trace.x + trace.points[i];
+          const u = (x - 86) / 780;
+          const envelope = Math.sin(Math.PI * u);
+          const motion = active
+            ? this.energy *
+              12 *
+              envelope *
+              Math.sin(
+                u * Math.PI * (7 + pitch * 3) +
+                  time * (2 + sound.frequency * 20) +
+                  line * 0.1,
+              )
+            : 0;
+          const y = trace.y + trace.points[i + 1] + motion;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.lineWidth = trace.width;
+        ctx.globalAlpha = trace.opacity;
+        ctx.strokeStyle = active ? SIGNAL : INK;
+        ctx.stroke();
       }
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(86, 280);
+      ctx.lineTo(866, 280);
+      ctx.strokeStyle = INK;
+      ctx.globalAlpha = 0.35;
       ctx.lineWidth = 1;
-      ctx.globalAlpha = 0.32 + line / 27;
-      ctx.strokeStyle = active ? SIGNAL : INK;
       ctx.stroke();
     }
+    ctx.restore();
     ctx.globalAlpha = 1;
   }
 }
