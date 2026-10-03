@@ -16,13 +16,24 @@ const path = require("node:path");
     await page.waitForFunction(
       () => document.querySelectorAll(".pad").length === 8,
     );
+    await page.waitForFunction(() => {
+      const canvas = document.querySelector("#synth-canvas");
+      const pixels = canvas
+        .getContext("2d")
+        .getImageData(0, 0, canvas.width, canvas.height).data;
+      return pixels.some((value, index) => index % 4 === 3 && value > 0);
+    });
     const range = async (id, value) =>
       page.locator(id).evaluate((input, value) => {
         input.value = value;
         input.dispatchEvent(new Event("input", { bubbles: true }));
       }, value);
-    const picture = () =>
-      page.locator("#synth-canvas").evaluate((canvas) => canvas.toDataURL());
+    const picture = async () => {
+      const canvas = page.locator("#synth-canvas");
+      // Снимок дожидается отрисовки кадра; сравниваем только графику, без подписей поверх неё.
+      await canvas.screenshot();
+      return canvas.evaluate((element) => element.toDataURL());
+    };
     await range("#synth-release", 0.1);
     await range("#synth-echo", 0);
     await page.waitForTimeout(250);
@@ -64,8 +75,9 @@ const path = require("node:path");
     assert.ok(!frames.includes(chord), "A chord combines the note shapes");
     await range("#synth-volume", 0);
     await page.waitForTimeout(1300);
+    const muted = await picture();
     assert.equal(
-      await picture(),
+      muted,
       idle,
       "Muted audio returns the visual to its idle shape",
     );
