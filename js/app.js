@@ -297,6 +297,7 @@ function setMode(value) {
   if (visuals) {
     visuals.mode = value;
     visuals.energy = 0;
+    visuals.noteLevels.fill(0);
     visuals.resize();
   }
 }

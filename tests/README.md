@@ -14,6 +14,7 @@ npx playwright install chromium
 ```sh
 node tests/browser.cjs
 node tests/regressions.cjs
+node tests/visuals.cjs
 ```
 
 Скриншоты, тестовый WAV и отчёт появятся в `test-results/`. Микрофон теста — автоматически созданный синусоидальный сигнал, а не запись человека. Для публикации эта папка не нужна.

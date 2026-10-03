@@ -1,3 +1,5 @@
+import { NOTE_MOTION, contourPoint } from "./note-motion.js";
+
 const INK = "#f3f3f0";
 const SIGNAL = "#a9b2ff";
 function analyserState(analyser, storage) {
@@ -29,7 +31,7 @@ export class SoundVisuals {
     this.voiceCanvas = document.querySelector("#voice-canvas");
     this.mode = "play";
     this.energy = 0;
-    this.shapeMix = 0;
+    this.noteLevels = Array(8).fill(0);
     this.reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
     this.storage = {
       wave: new Float32Array(2048),
@@ -68,12 +70,12 @@ export class SoundVisuals {
     const sound = analyserState(analyser, storage);
     this.energy += (Math.min(1, sound.rms * 7) - this.energy) * 0.14;
     const time = this.reducedMotion ? 0 : performance.now() / 1000;
-    if (this.mode === "play") this.drawSynth(time, now, sound);
+    if (this.mode === "play") this.drawSynth(time, now);
     else this.drawVoice(time, sound);
     this.onFrame(now);
     requestAnimationFrame(this.frame);
   }
-  drawSynth(time, now, sound) {
+  drawSynth(time, now) {
     const canvas = this.synthCanvas,
       ctx = canvas.getContext("2d");
     const width = canvas.clientWidth,
@@ -85,43 +87,50 @@ export class SoundVisuals {
     const notes = [...this.engine.voices].filter(
       (v) => v.start <= now && v.end > now,
     );
-    const average = notes.length
-      ? notes.reduce((sum, v) => sum + v.index, 0) / notes.length
-      : 3;
-    const target = notes.length > 1 ? this.geometry.chord : this.geometry.note;
-    this.shapeMix +=
-      ((notes.length || this.energy > 0.025 ? 1 : 0) - this.shapeMix) * 0.14;
-    const motion = this.energy * (this.reducedMotion ? 1 : 5);
+    const targetLevels = Array(8).fill(0);
+    for (const note of notes) {
+      const envelope =
+        now <= note.gateEnd
+          ? 1
+          : Math.exp(
+              (-4.5 * (now - note.gateEnd)) /
+                Math.max(0.04, note.end - note.gateEnd - 0.04),
+            );
+      targetLevels[note.index] = Math.max(targetLevels[note.index], envelope);
+    }
+    const volume = Math.min(1, this.energy * 7);
+    for (let i = 0; i < this.noteLevels.length; i++) {
+      this.noteLevels[i] +=
+        (targetLevels[i] * volume - this.noteLevels[i]) * 0.14;
+      if (this.noteLevels[i] < 0.001) this.noteLevels[i] = 0;
+    }
+    const total = this.noteLevels.reduce((sum, value) => sum + value, 0);
+    const strength = Math.min(1, total);
+    const color = [243, 243, 240].map((idle, channel) => {
+      const mixed =
+        this.noteLevels.reduce(
+          (sum, level, i) => sum + level * NOTE_MOTION[i].color[channel],
+          0,
+        ) / Math.max(0.001, total);
+      return Math.round(idle + (mixed - idle) * strength);
+    });
     for (let line = 0; line < this.geometry.idle.length; line++) {
       const idle = this.geometry.idle[line];
-      const playing = target[line];
       ctx.beginPath();
       for (let i = 0; i < idle.points.length; i += 2) {
-        const x =
-          idle.x +
-          idle.points[i] +
-          (playing.x + playing.points[i] - idle.x - idle.points[i]) *
-            this.shapeMix;
-        const y =
-          idle.y +
-          idle.points[i + 1] +
-          (playing.y + playing.points[i + 1] - idle.y - idle.points[i + 1]) *
-            this.shapeMix;
-        const angle = Math.atan2((y - 212) * 1.4, x - 468);
-        const modulation =
-          motion *
-          Math.sin(
-            angle * (2 + average / 3) +
-              time * (1.1 + sound.frequency * 12) +
-              line * 0.13,
-          );
-        const px = x + Math.cos(angle) * modulation;
-        const py = y + Math.sin(angle) * modulation;
+        const [px, py] = contourPoint(
+          idle.x + idle.points[i],
+          idle.y + idle.points[i + 1],
+          line,
+          this.noteLevels,
+          time,
+          this.reducedMotion,
+        );
         if (i === 0) ctx.moveTo(px, py);
         else ctx.lineTo(px, py);
       }
       ctx.closePath();
-      ctx.strokeStyle = this.shapeMix > 0.1 ? SIGNAL : INK;
+      ctx.strokeStyle = `rgb(${color.join(",")})`;
       ctx.globalAlpha = idle.opacity;
       ctx.lineWidth = idle.width;
       ctx.stroke();
