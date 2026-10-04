@@ -4,6 +4,9 @@ const fs = require("node:fs");
 const path = require("node:path");
 const os = require("node:os");
 const url = process.env.CONTOUR_URL || "http://localhost:4173";
+const viewportWidth = Number(process.env.CONTOUR_WIDTH || 414);
+const tablet = viewportWidth === 768;
+const screenName = tablet ? "tablet" : "mobile";
 const output = path.join(process.cwd(), "test-results");
 fs.mkdirSync(output, { recursive: true });
 const fixture = path.join(os.tmpdir(), "contour-mobile-microphone.wav");
@@ -39,7 +42,7 @@ fs.writeFileSync(fixture, wav);
   });
   try {
     const context = await browser.newContext({
-      viewport: { width: 414, height: 896 },
+      viewport: { width: viewportWidth, height: tablet ? 1024 : 896 },
       isMobile: true,
       hasTouch: true,
       permissions: ["microphone"],
@@ -81,17 +84,17 @@ fs.writeFileSync(fixture, wav);
         zoom: document.querySelector(".instrument").style.zoom,
       };
     });
-    assert.equal(layout.stage.width, 374);
-    assert.equal(layout.stage.height, 254);
-    assert.equal(layout.pads[0].height, 92);
-    assert.equal(layout.pads[0].width, 87.5);
+    assert.equal(layout.stage.width, tablet ? 720 : 374);
+    assert.equal(layout.stage.height, tablet ? 340 : 254);
+    assert.equal(layout.pads[0].height, tablet ? 112 : 92);
+    assert.equal(layout.pads[0].width, tablet ? 171 : 87.5);
     assert.equal(layout.pads[0].y, layout.pads[3].y);
     assert.ok(layout.pads[4].y > layout.pads[0].y);
     assert.ok(layout.controls.y > layout.loop.y);
     assert.equal(layout.horizontal, false);
     assert.equal(layout.zoom, "1");
     await page.screenshot({
-      path: path.join(output, "mobile-ready.png"),
+      path: path.join(output, `${screenName}-ready.png`),
       fullPage: true,
     });
     const cdp = await context.newCDPSession(page);
@@ -135,7 +138,7 @@ fs.writeFileSync(fixture, wav);
       });
     assert.ok((await energy()) > 0.005, "Real audio during a touch chord");
     await page.screenshot({
-      path: path.join(output, "mobile-chord.png"),
+      path: path.join(output, `${screenName}-chord.png`),
       fullPage: true,
     });
     await cdp.send("Input.dispatchTouchEvent", {
@@ -165,11 +168,13 @@ fs.writeFileSync(fixture, wav);
     assert.ok(
       await page.getByRole("heading", { name: "Играй касанием" }).isVisible(),
     );
-    await page.screenshot({ path: path.join(output, "mobile-help.png") });
+    await page.screenshot({
+      path: path.join(output, `${screenName}-help.png`),
+    });
     await page.locator("#help-done").tap();
     await page.locator("#mode-voice").tap();
     await page.screenshot({
-      path: path.join(output, "mobile-voice-empty.png"),
+      path: path.join(output, `${screenName}-voice-empty.png`),
       fullPage: true,
     });
     assert.equal(await page.locator("#effect-child").count(), 1);
@@ -192,7 +197,7 @@ fs.writeFileSync(fixture, wav);
     });
     assert.ok(await page.locator("#voice-download").isVisible());
     await page.screenshot({
-      path: path.join(output, "mobile-voice-effects.png"),
+      path: path.join(output, `${screenName}-voice-effects.png`),
       fullPage: true,
     });
     const downloadPromise = page.waitForEvent("download");
@@ -202,7 +207,9 @@ fs.writeFileSync(fixture, wav);
     assert.ok(fs.statSync(path.join(output, "mobile-voice.wav")).size > 1000);
     await page.locator("#voice-delete").tap();
     assert.equal(await page.locator("#voice-download").isVisible(), false);
-    for (const width of [320, 375, 390, 414, 600, 775, 1440]) {
+    for (const width of [
+      320, 375, 390, 414, 600, 601, 768, 820, 1024, 1100, 1101, 1440,
+    ]) {
       await page.setViewportSize({ width, height: 896 });
       await page.waitForTimeout(100);
       assert.ok(
@@ -216,7 +223,7 @@ fs.writeFileSync(fixture, wav);
     }
     assert.deepEqual(errors, []);
     console.log(
-      "PASS: mobile layout, multitouch audio, loop, microphone, child effect, WAV, help, responsive widths",
+      `PASS: ${screenName} layout, multitouch audio, loop, microphone, child effect, WAV, help, responsive widths`,
     );
   } finally {
     await browser.close();

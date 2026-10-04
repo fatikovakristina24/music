@@ -100,7 +100,7 @@ fs.writeFileSync(fixture, wav);
     assert.ok(Math.abs(bounds[".pads"].y - 674) < 1);
     assert.ok(Math.abs(bounds[".loop-panel"].y - 850) < 1);
 
-    for (const width of [1280, 775]) {
+    for (const width of [1280, 775, 1101]) {
       await page.setViewportSize({ width, height: 960 });
       await page.waitForFunction(
         () =>
@@ -120,8 +120,14 @@ fs.writeFileSync(fixture, wav);
           overflow: document.documentElement.scrollWidth > innerWidth,
         };
       });
-      assert.ok(Math.abs(scaled.x - (48 * width) / 1440) < 1);
-      assert.ok(Math.abs(scaled.width / scaled.height - 952 / 440) < 0.01);
+      if (width <= 1100) {
+        assert.equal(scaled.x, 24);
+        assert.equal(scaled.width, width - 48);
+        assert.equal(scaled.height, 340);
+      } else {
+        assert.ok(Math.abs(scaled.x - (48 * width) / 1440) < 1);
+        assert.ok(Math.abs(scaled.width / scaled.height - 952 / 440) < 0.01);
+      }
       assert.equal(
         scaled.overflow,
         false,

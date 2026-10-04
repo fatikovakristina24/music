@@ -665,7 +665,7 @@ fieldset {
 .mobile-only {
   display: none;
 }
-@media (max-width: 600px) {
+@media (max-width: 1100px) {
   body {
     background: var(--paper);
   }
@@ -984,6 +984,148 @@ fieldset {
   .help-steps p {
     font-size: 14px;
     line-height: 20px;
+  }
+}
+@media (min-width: 601px) and (max-width: 1100px) {
+  .instrument {
+    padding: 24px;
+  }
+  .header {
+    display: flex;
+    height: 80px;
+    gap: 24px;
+    align-items: flex-start;
+  }
+  .brand {
+    font-size: 30px;
+    line-height: 56px;
+  }
+  .mode-switch {
+    width: 280px;
+    flex-shrink: 0;
+  }
+  .help-button {
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+  .screen {
+    gap: 24px;
+  }
+  .stage {
+    height: 340px;
+    border-radius: 28px;
+  }
+  .stage-caption {
+    top: 20px;
+    left: 24px;
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .stage-status {
+    left: 24px;
+    bottom: 20px;
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .section-copy h2 {
+    font-size: 22px;
+    line-height: 31px;
+  }
+  .section-copy p {
+    font-size: 16px;
+    line-height: 22px;
+  }
+  .pads {
+    gap: 12px;
+  }
+  .pad {
+    height: 112px;
+    padding: 0 18px;
+  }
+  .pad .note {
+    top: 22px;
+    font-size: 26px;
+    line-height: 36px;
+  }
+  .pad-wave {
+    height: 106px;
+  }
+  .loop-panel {
+    padding: 20px 20px 22px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+  #loop-download {
+    grid-column: auto;
+  }
+  #loop-status {
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .controls {
+    padding: 24px;
+  }
+  .controls h2 {
+    font-size: 20px;
+    line-height: 28px;
+  }
+  .synth-controls {
+    position: relative;
+  }
+  .synth-controls h2 {
+    display: flex;
+    align-items: center;
+    height: 49px;
+  }
+  .presets {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    width: min(320px, 48%);
+    margin: 0;
+  }
+  .synth-controls .slider-list {
+    margin-top: 24px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 28px;
+  }
+  .slider {
+    min-width: 0;
+  }
+  .voice-stage {
+    height: 300px;
+  }
+  #voice-caption {
+    bottom: 20px;
+  }
+  #voice-status {
+    top: 20px;
+  }
+  .controls-description {
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .voice-controls .slider-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 24px;
+  }
+  .privacy {
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .dialog {
+    width: 680px;
+    max-width: calc(100vw - 48px);
+    padding: 32px;
+  }
+  .dialog h2 {
+    font-size: 22px;
+  }
+}
+@media (min-width: 601px) and (max-width: 700px) {
+  .synth-controls .slider-list {
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
 }
 @media (max-width: 360px) {

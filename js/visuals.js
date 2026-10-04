@@ -33,6 +33,9 @@ export class SoundVisuals {
     this.energy = 0;
     this.noteLevels = Array(8).fill(0);
     this.mobileLayout = matchMedia("(max-width: 600px)");
+    this.tabletLayout = matchMedia(
+      "(min-width: 601px) and (max-width: 1100px)",
+    );
     this.reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
     this.storage = {
       wave: new Float32Array(2048),
@@ -77,6 +80,17 @@ export class SoundVisuals {
     requestAnimationFrame(this.frame);
   }
   fitStage(ctx, width, height, voice) {
+    if (this.tabletLayout.matches) {
+      const scale = voice
+        ? Math.min((width - 48) / 812, (height - 96) / 245)
+        : Math.min((width - 48) / 704, (height - 64) / 424);
+      ctx.translate(
+        width / 2 - (voice ? 476 : 468) * scale,
+        height / 2 - (voice ? 280 : 214) * scale,
+      );
+      ctx.scale(scale, scale);
+      return;
+    }
     if (!this.mobileLayout.matches) {
       ctx.scale(width / 952, height / (voice ? 560 : 440));
       return;

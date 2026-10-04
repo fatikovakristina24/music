@@ -4,13 +4,13 @@ import {
   VoiceRecorder,
   VOICE_LIMIT_SECONDS,
 } from "./voice.js?v=20261004-melody1";
-import { SoundVisuals } from "./visuals.js?v=20261004-mobile1";
+import { SoundVisuals } from "./visuals.js?v=20261004-tablet1";
 
 const $ = (selector) => document.querySelector(selector);
-const mobileLayout = matchMedia("(max-width: 600px)");
-// Масштабируем весь desktop-макет, сохраняя его композицию.
+const compactLayout = matchMedia("(max-width: 1100px)");
+// На телефонах и планшетах используется своя компоновка без масштабирования.
 function fitStudio() {
-  $(".instrument").style.zoom = mobileLayout.matches
+  $(".instrument").style.zoom = compactLayout.matches
     ? 1
     : Math.min(1, document.documentElement.clientWidth / 1440);
 }
@@ -351,12 +351,12 @@ function updateLoop() {
   const recording = loop.state === "recording",
     playing = loop.state === "playing";
   $(".loop-copy h3").textContent =
-    mobileLayout.matches && recording ? "Запись мелодии" : "Твоя мелодия";
+    compactLayout.matches && recording ? "Запись мелодии" : "Твоя мелодия";
   $(".loop-copy .mobile-only").textContent = recording
     ? `0.0 / ${decimals(LOOP_LIMIT_SECONDS)} с`
     : "До 20 секунд";
   $("#loop-record").textContent = recording
-    ? mobileLayout.matches
+    ? compactLayout.matches
       ? "■ Стоп"
       : "■ Остановить"
     : "● Записать";
@@ -376,7 +376,7 @@ function updateLoop() {
       ? `Повторяем · ${decimals(loop.duration)} секунды`
       : loop.notes.length
         ? `Фраза · ${decimals(loop.duration)} секунды`
-        : mobileLayout.matches
+        : compactLayout.matches
           ? "Сначала сыграй и запиши свою мелодию."
           : "Сначала запиши свою мелодию →";
 }
@@ -402,12 +402,12 @@ function updateVoice() {
   const enabled = hasRecording && !recording && !busy;
   $("#voice-record").disabled = busy;
   $("#voice-record").textContent = recording
-    ? mobileLayout.matches
+    ? compactLayout.matches
       ? "■ Остановить запись"
       : "■ Закончить запись"
     : voice.state === "requesting"
       ? "Разреши микрофон…"
-      : mobileLayout.matches && hasRecording
+      : compactLayout.matches && hasRecording
         ? "● Записать заново"
         : "● Записать голос";
   $("#voice-play").disabled = !enabled;
@@ -415,7 +415,7 @@ function updateVoice() {
     ? "Ⅱ Пауза"
     : voice.state === "paused"
       ? "▶ Продолжить"
-      : mobileLayout.matches
+      : compactLayout.matches
         ? "▶ Слушать"
         : "▶ Послушать";
   $("#voice-reset").disabled = $("#voice-delete").disabled = !enabled;
@@ -423,7 +423,7 @@ function updateVoice() {
   $("#voice-download").disabled = !enabled || voice.exporting;
   $("#voice-download").textContent = voice.exporting
     ? "Сохраняем…"
-    : mobileLayout.matches
+    : compactLayout.matches
       ? "Скачать WAV ↓"
       : "Скачать запись ↓";
   $("#voice-summary").textContent = recording
@@ -434,11 +434,11 @@ function updateVoice() {
         ? `Запись · ${decimals(voice.buffer.duration)} секунды`
         : "Пока нет записи";
   $("#voice-caption").textContent = recording
-    ? mobileLayout.matches
+    ? compactLayout.matches
       ? "Говори — звук рисует форму"
       : "Твой голос становится формой"
     : playing
-      ? mobileLayout.matches
+      ? compactLayout.matches
         ? "Твой голос звучит иначе"
         : "Теперь твой голос звучит иначе"
       : hasRecording
@@ -448,16 +448,16 @@ function updateVoice() {
     ? "Говори — мы слушаем"
     : hasRecording
       ? "Послушай, что получилось"
-      : mobileLayout.matches
+      : compactLayout.matches
         ? "Попробуй свой голос"
         : "Начни со своего голоса";
   $("#voice-description").textContent = recording
     ? `Запись закончится через ${VOICE_LIMIT_SECONDS} секунд. Можно остановить её раньше.`
     : hasRecording
-      ? mobileLayout.matches
+      ? compactLayout.matches
         ? "Меняй эффекты ниже и слушай результат."
         : "Меняй эффекты справа и слушай результат. Исходный голос сохраняется."
-      : mobileLayout.matches
+      : compactLayout.matches
         ? `Запиши фразу до ${VOICE_LIMIT_SECONDS} секунд, затем меняй её звучание.`
         : `Нажми «Записать голос» и скажи что-нибудь. Можно записать до ${VOICE_LIMIT_SECONDS} секунд.`;
   $("#voice-status").textContent = recording
@@ -466,20 +466,20 @@ function updateVoice() {
       ? "Слушаем запись…"
       : hasRecording
         ? `Твоя запись · ${decimals(voice.buffer.duration)} секунды`
-        : mobileLayout.matches
+        : compactLayout.matches
           ? "Пока нет записи"
           : "Запиши фразу — и посмотри, как она звучит ↓";
   $(".voice-panel").classList.toggle(
     "has-recording",
     hasRecording && !recording,
   );
-  $("#voice-play").classList.toggle("active", playing && mobileLayout.matches);
-  $(".controls-description").textContent = mobileLayout.matches
+  $("#voice-play").classList.toggle("active", playing && compactLayout.matches);
+  $(".controls-description").textContent = compactLayout.matches
     ? enabled
       ? "Эффекты можно сочетать"
       : "Эффекты доступны после записи"
     : "Сочетай эффекты и слушай результат";
-  $(".privacy").textContent = mobileLayout.matches
+  $(".privacy").textContent = compactLayout.matches
     ? "Голос остаётся в этой вкладке."
     : "Голос обрабатывается в браузере — загрузка на сервер не нужна.";
   for (const [name, { input, display }] of effectSliders) {
@@ -565,14 +565,14 @@ try {
       $("#synth-caption").textContent = active
         ? sounding.length > 1
           ? "Сейчас звучит аккорд"
-          : mobileLayout.matches
+          : compactLayout.matches
             ? `Сейчас звучит ${NOTES[sounding[0].index].label}`
             : "Звучит твоя первая нота"
         : "Твой звук начинается здесь";
       const labels = [...new Set(sounding.map((v) => NOTES[v.index].label))];
       $("#synth-status").textContent = active
         ? labels.join(" + ")
-        : mobileLayout.matches
+        : compactLayout.matches
           ? "Коснись любой ноты ниже"
           : "Нажми любую ноту внизу ↓";
       if (loop.state === "recording") {
@@ -595,7 +595,7 @@ try {
 }
 updateLoop();
 updateVoice();
-mobileLayout.addEventListener("change", () => {
+compactLayout.addEventListener("change", () => {
   fitStudio();
   updateLoop();
   updateVoice();
