@@ -16,6 +16,12 @@
   font-weight: 600;
   font-display: swap;
 }
+@font-face {
+  font-family: Unbounded;
+  src: url("assets/unbounded.ttf") format("truetype");
+  font-weight: 200 900;
+  font-display: swap;
+}
 :root {
   color-scheme: dark;
   --paper: #0a0a0b;
@@ -91,10 +97,11 @@ p {
   align-items: flex-start;
 }
 .brand {
-  font-size: 44px;
+  font-family: Unbounded, Manrope, sans-serif;
+  font-size: 36px;
   line-height: 1.3;
-  font-weight: 600;
-  letter-spacing: -1.76px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
   margin-top: -2.5px;
 }
 .mode-switch {
@@ -202,9 +209,9 @@ p {
   border-radius: 32px;
 }
 .controls h2 {
-  font-size: 22px;
-  line-height: 1.3;
-  font-weight: 600;
+  font-size: 20px;
+  line-height: 28.6px;
+  font-weight: 500;
 }
 .presets {
   display: flex;
@@ -308,9 +315,9 @@ p {
   margin-top: 38px;
 }
 .section-copy h2 {
-  font-size: 28px;
-  font-weight: 600;
-  line-height: 1.3;
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 36.4px;
 }
 .section-copy p {
   margin-top: 2px;
@@ -504,7 +511,8 @@ fieldset {
   margin-top: 28px;
 }
 .voice-copy h2 {
-  font-size: 30px;
+  font-size: 26px;
+  line-height: 39px;
 }
 .voice-copy p {
   margin-top: 5px;
@@ -562,9 +570,16 @@ fieldset {
   backdrop-filter: blur(8px);
 }
 .dialog h2 {
-  font-size: 32px;
-  font-weight: 600;
-  letter-spacing: -0.6px;
+  font-size: 26px;
+  line-height: 41.6px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.controls h2,
+.section-copy h2,
+.dialog h2 {
+  font-family: Unbounded, Manrope, sans-serif;
+  letter-spacing: -0.01em;
 }
 .dialog-close {
   position: absolute;
@@ -677,9 +692,9 @@ fieldset {
     align-items: center;
   }
   .brand {
-    font-size: 32px;
+    font-size: 26px;
     line-height: 45px;
-    letter-spacing: -1.2px;
+    letter-spacing: -0.03em;
     margin: 0;
   }
   .help-button {
@@ -735,7 +750,7 @@ fieldset {
     margin: 0;
   }
   .section-copy h2 {
-    font-size: 22px;
+    font-size: 18px;
     line-height: 31px;
   }
   .section-copy p {
@@ -811,7 +826,7 @@ fieldset {
     border-radius: 24px;
   }
   .controls h2 {
-    font-size: 20px;
+    font-size: 18px;
     line-height: 28px;
   }
   .presets {
@@ -941,10 +956,10 @@ fieldset {
     border-radius: 24px;
   }
   .dialog h2 {
-    font-size: 22px;
+    font-size: 18px;
     line-height: 31px;
     padding-right: 48px;
-    letter-spacing: 0;
+    letter-spacing: -0.01em;
   }
   .dialog-close {
     top: 20px;

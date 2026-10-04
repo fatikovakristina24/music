@@ -345,7 +345,7 @@ function updateLoop() {
   const recording = loop.state === "recording",
     playing = loop.state === "playing";
   $(".loop-copy h3").textContent =
-    mobileLayout.matches && recording ? "Запись мелодии" : "Твоя фраза";
+    mobileLayout.matches && recording ? "Запись мелодии" : "Твоя мелодия";
   $(".loop-copy .mobile-only").textContent = recording
     ? `0.0 / ${decimals(LOOP_LIMIT_SECONDS)} с`
     : "До 20 секунд";
