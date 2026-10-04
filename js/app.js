@@ -1,6 +1,9 @@
-import { AudioEngine, NOTES } from "./audio/engine.js";
-import { NoteLoop, LOOP_LIMIT_SECONDS } from "./loop.js";
-import { VoiceRecorder, VOICE_LIMIT_SECONDS } from "./voice.js";
+import { AudioEngine, NOTES } from "./audio/engine.js?v=20261004-melody1";
+import { NoteLoop, LOOP_LIMIT_SECONDS } from "./loop.js?v=20261004-melody1";
+import {
+  VoiceRecorder,
+  VOICE_LIMIT_SECONDS,
+} from "./voice.js?v=20261004-melody1";
 import { SoundVisuals } from "./visuals.js?v=20261004-mobile1";
 
 const $ = (selector) => document.querySelector(selector);
@@ -340,6 +343,9 @@ $("#loop-play").addEventListener("click", () =>
   }),
 );
 $("#loop-clear").addEventListener("click", () => loop.clear());
+$("#loop-download").addEventListener("click", () =>
+  safe(() => loop.download(), "Не удалось скачать мелодию"),
+);
 loop.addEventListener("change", updateLoop);
 function updateLoop() {
   const recording = loop.state === "recording",
@@ -359,6 +365,11 @@ function updateLoop() {
   $("#loop-play").classList.toggle("active", playing);
   $("#loop-play").disabled = !loop.notes.length || recording;
   $("#loop-clear").disabled = loop.state === "empty" || recording;
+  $("#loop-download").disabled =
+    !loop.notes.length || recording || loop.exporting;
+  $("#loop-download").textContent = loop.exporting
+    ? "Сохраняем…"
+    : "Скачать WAV ↓";
   $("#loop-status").textContent = recording
     ? `Записываем · 0.0 / ${decimals(LOOP_LIMIT_SECONDS)} с`
     : playing

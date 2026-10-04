@@ -37,3 +37,14 @@ export function encodeWav(buffer) {
     }
   return new Blob([output], { type: "audio/wav" });
 }
+
+export function downloadWav(buffer, filename) {
+  const url = URL.createObjectURL(encodeWav(buffer));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}

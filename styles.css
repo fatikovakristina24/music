@@ -446,7 +446,7 @@ p {
   border-radius: 28px;
   padding: 0 24px;
   display: grid;
-  grid-template-columns: 260px 160px 148px 138px minmax(0, 1fr);
+  grid-template-columns: 220px 150px 138px 128px 152px minmax(0, 1fr);
   column-gap: 16px;
   align-items: center;
 }
@@ -797,6 +797,9 @@ fieldset {
     align-items: center;
     justify-content: space-between;
     gap: 8px;
+  }
+  #loop-download {
+    grid-column: 1 / -1;
   }
   .loop-copy h3 {
     font-size: 16px;

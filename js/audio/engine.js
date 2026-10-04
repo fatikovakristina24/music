@@ -23,6 +23,7 @@ export class AudioEngine {
     this.synthSettings = { preset: "soft", release: 1.8, echo: 24, volume: 65 };
     this.effects = { ...DEFAULT_EFFECTS };
     this.voices = new Set();
+    this.voiceLimit = 32;
     this.synthEnabled = true;
   }
 
@@ -33,43 +34,46 @@ export class AudioEngine {
         throw new Error(
           "Этот браузер не поддерживает Web Audio. Открой сайт в актуальном Chrome или Safari.",
         );
-      this.context = new AudioContext({ latencyHint: "interactive" });
-      const ctx = this.context;
-      this.master = ctx.createGain();
-      this.master.gain.value = 0.8;
-      this.analyser = ctx.createAnalyser();
-      this.analyser.fftSize = 2048;
-      this.analyser.smoothingTimeConstant = 0.8;
-      const limiter = ctx.createDynamicsCompressor();
-      limiter.threshold.value = -12;
-      limiter.knee.value = 18;
-      limiter.ratio.value = 6;
-      this.synthInput = ctx.createGain();
-      this.synthVolume = ctx.createGain();
-      this.synthVolume.gain.value = this.synthEnabled
-        ? this.synthSettings.volume / 100
-        : 0;
-      const echo = ctx.createDelay();
-      echo.delayTime.value = 0.32;
-      const feedback = ctx.createGain();
-      feedback.gain.value = 0.32;
-      this.echoWet = ctx.createGain();
-      this.echoWet.gain.value = this.synthSettings.echo / 100;
-      this.synthInput.connect(this.synthVolume);
-      this.synthInput.connect(echo);
-      echo.connect(feedback).connect(echo);
-      echo.connect(this.echoWet).connect(this.synthVolume);
-      this.synthVolume
-        .connect(limiter)
-        .connect(this.master)
-        .connect(this.analyser)
-        .connect(ctx.destination);
-      this.voiceAnalyser = ctx.createAnalyser();
-      this.voiceAnalyser.fftSize = 2048;
-      this.voiceAnalyser.connect(this.master);
+      this.initialize(new AudioContext({ latencyHint: "interactive" }));
     }
     if (this.context.state !== "running") await this.context.resume();
     return this.context;
+  }
+
+  initialize(ctx) {
+    this.context = ctx;
+    this.master = ctx.createGain();
+    this.master.gain.value = 0.8;
+    this.analyser = ctx.createAnalyser();
+    this.analyser.fftSize = 2048;
+    this.analyser.smoothingTimeConstant = 0.8;
+    const limiter = ctx.createDynamicsCompressor();
+    limiter.threshold.value = -12;
+    limiter.knee.value = 18;
+    limiter.ratio.value = 6;
+    this.synthInput = ctx.createGain();
+    this.synthVolume = ctx.createGain();
+    this.synthVolume.gain.value = this.synthEnabled
+      ? this.synthSettings.volume / 100
+      : 0;
+    const echo = ctx.createDelay();
+    echo.delayTime.value = 0.32;
+    const feedback = ctx.createGain();
+    feedback.gain.value = 0.32;
+    this.echoWet = ctx.createGain();
+    this.echoWet.gain.value = this.synthSettings.echo / 100;
+    this.synthInput.connect(this.synthVolume);
+    this.synthInput.connect(echo);
+    echo.connect(feedback).connect(echo);
+    echo.connect(this.echoWet).connect(this.synthVolume);
+    this.synthVolume
+      .connect(limiter)
+      .connect(this.master)
+      .connect(this.analyser)
+      .connect(ctx.destination);
+    this.voiceAnalyser = ctx.createAnalyser();
+    this.voiceAnalyser.fftSize = 2048;
+    this.voiceAnalyser.connect(this.master);
   }
 
   async worklets() {
@@ -119,7 +123,7 @@ export class AudioEngine {
 
   noteOn(index, when = this.context.currentTime, gateDuration = null) {
     const ctx = this.context;
-    if (this.voices.size >= 32) [...this.voices][0].kill();
+    if (this.voices.size >= this.voiceLimit) [...this.voices][0].kill();
     const settings = { ...this.synthSettings };
     const gain = ctx.createGain();
     gain.gain.value = 0;
@@ -251,6 +255,31 @@ export class AudioEngine {
     this.pitchNode?.disconnect();
     this.voiceChain?.dispose();
     this.voiceSource = this.pitchNode = this.voiceChain = null;
+  }
+
+  async exportMelody(notes, duration) {
+    const settings = { ...this.synthSettings };
+    const sampleRate = this.context?.sampleRate || 48000;
+    const lastEnd = Math.max(
+      duration,
+      ...notes.map((n) => n.time + n.duration),
+    );
+    const tail = settings.release + 0.04 + (settings.echo > 0 ? 2.56 : 0);
+    const OfflineContext =
+      window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    const offline = new OfflineContext(
+      2,
+      Math.ceil((lastEnd + tail) * sampleRate),
+      sampleRate,
+    );
+    const renderer = new AudioEngine();
+    renderer.synthSettings = settings;
+    // Ноты планируются сразу на весь файл, а не только на ближайший момент.
+    renderer.voiceLimit = Infinity;
+    renderer.initialize(offline);
+    for (const note of notes)
+      renderer.noteOn(note.index, note.time, note.duration);
+    return offline.startRendering();
   }
 
   async exportVoice(buffer) {

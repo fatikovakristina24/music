@@ -112,7 +112,20 @@ fs.writeFileSync(fixture, wav);
     await page.waitForFunction(
       () => document.querySelectorAll(".pad.pressed").length === 2,
     );
-    await page.waitForTimeout(300);
+    await page.waitForFunction(
+      () => {
+        const analyser = window.__analysers[0];
+        const samples = new Float32Array(analyser.fftSize);
+        analyser.getFloatTimeDomainData(samples);
+        return (
+          Math.sqrt(
+            samples.reduce((sum, x) => sum + x * x, 0) / samples.length,
+          ) > 0.005
+        );
+      },
+      null,
+      { timeout: 3000 },
+    );
     const energy = () =>
       page.evaluate(() => {
         const a = window.__analysers[0],
@@ -141,6 +154,12 @@ fs.writeFileSync(fixture, wav);
     await page.waitForTimeout(300);
     assert.match(await page.locator("#loop-status").textContent(), /Повторяем/);
     await page.locator("#loop-play").tap();
+    const melodyDownloadPromise = page.waitForEvent("download");
+    await page.locator("#loop-download").tap();
+    const melodyDownload = await melodyDownloadPromise;
+    assert.equal(melodyDownload.suggestedFilename(), "kontur-melody.wav");
+    await melodyDownload.saveAs(path.join(output, "mobile-melody.wav"));
+    assert.ok(fs.statSync(path.join(output, "mobile-melody.wav")).size > 1000);
     await page.locator("#help-open").tap();
     assert.ok(await page.locator("#help-dialog").isVisible());
     assert.ok(

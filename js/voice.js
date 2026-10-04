@@ -1,4 +1,4 @@
-import { encodeWav } from "./audio/wav.js";
+import { downloadWav } from "./audio/wav.js?v=20261004-melody1";
 import { effectTail } from "./audio/effects.js";
 
 export const VOICE_LIMIT_SECONDS = 20;
@@ -222,14 +222,7 @@ export class VoiceRecorder extends EventTarget {
     this.changed();
     try {
       const rendered = await this.engine.exportVoice(this.buffer);
-      const url = URL.createObjectURL(encodeWav(rendered));
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "kontur-voice.wav";
-      document.body.append(link);
-      link.click();
-      link.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      downloadWav(rendered, "kontur-voice.wav");
     } finally {
       this.exporting = false;
       this.changed();

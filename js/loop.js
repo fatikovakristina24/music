@@ -1,6 +1,8 @@
 /** Записывает нажатия и повторяет их по часам AudioContext.
  * Таймер заранее ставит ноты в очередь; точное время задаёт аудиопоток.
  */
+import { downloadWav } from "./audio/wav.js?v=20261004-melody1";
+
 export const LOOP_LIMIT_SECONDS = 20;
 
 export class NoteLoop extends EventTarget {
@@ -12,6 +14,7 @@ export class NoteLoop extends EventTarget {
     this.pending = new Map();
     this.scheduled = new Set();
     this.duration = 0;
+    this.exporting = false;
   }
   changed() {
     this.dispatchEvent(new Event("change"));
@@ -115,6 +118,21 @@ export class NoteLoop extends EventTarget {
     this.duration = 0;
     this.state = "empty";
     this.changed();
+  }
+  async download() {
+    if (!this.notes.length || this.state === "recording" || this.exporting)
+      return;
+    const notes = this.notes.map((note) => ({ ...note }));
+    const duration = this.duration;
+    this.exporting = true;
+    this.changed();
+    try {
+      const rendered = await this.engine.exportMelody(notes, duration);
+      downloadWav(rendered, "kontur-melody.wav");
+    } finally {
+      this.exporting = false;
+      this.changed();
+    }
   }
   get elapsed() {
     return this.state === "recording"
