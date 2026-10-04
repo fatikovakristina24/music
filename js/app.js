@@ -1,15 +1,15 @@
 import { AudioEngine, NOTES } from "./audio/engine.js";
 import { NoteLoop, LOOP_LIMIT_SECONDS } from "./loop.js";
 import { VoiceRecorder, VOICE_LIMIT_SECONDS } from "./voice.js";
-import { SoundVisuals } from "./visuals.js?v=20261004-2";
+import { SoundVisuals } from "./visuals.js?v=20261004-mobile1";
 
 const $ = (selector) => document.querySelector(selector);
+const mobileLayout = matchMedia("(max-width: 600px)");
 // Масштабируем весь desktop-макет, сохраняя его композицию.
 function fitStudio() {
-  $(".instrument").style.zoom = Math.min(
-    1,
-    document.documentElement.clientWidth / 1440,
-  );
+  $(".instrument").style.zoom = mobileLayout.matches
+    ? 1
+    : Math.min(1, document.documentElement.clientWidth / 1440);
 }
 fitStudio();
 window.addEventListener("resize", fitStudio);
@@ -154,7 +154,7 @@ const pads = NOTES.map((note, index) => {
   const button = document.createElement("button");
   button.className = "pad";
   button.type = "button";
-  button.innerHTML = `<span class="key">${note.key}</span><span class="note">${note.label}</span>`;
+  button.innerHTML = `<span class="key">${note.key}</span><span class="note">${note.label}${index === 7 ? '<span class="mobile-only"> ↑</span>' : ""}</span>`;
   const wave = Array.from({ length: 109 }, (_, x) => {
     const y =
       122 +
@@ -237,6 +237,14 @@ function noteOff(token) {
   loop.noteOff(token);
   held.delete(token);
 }
+// На телефоне первое касание разрешает аудио при отпускании пальца.
+document.addEventListener(
+  "touchend",
+  () => {
+    if (engine.context?.state === "suspended") safe(() => engine.ready());
+  },
+  { passive: true },
+);
 function releaseHeld() {
   inputGeneration++;
   for (const token of held.keys()) noteOff(token);
@@ -336,7 +344,16 @@ loop.addEventListener("change", updateLoop);
 function updateLoop() {
   const recording = loop.state === "recording",
     playing = loop.state === "playing";
-  $("#loop-record").textContent = recording ? "■ Остановить" : "● Записать";
+  $(".loop-copy h3").textContent =
+    mobileLayout.matches && recording ? "Запись мелодии" : "Твоя фраза";
+  $(".loop-copy .mobile-only").textContent = recording
+    ? `0.0 / ${decimals(LOOP_LIMIT_SECONDS)} с`
+    : "До 20 секунд";
+  $("#loop-record").textContent = recording
+    ? mobileLayout.matches
+      ? "■ Стоп"
+      : "■ Остановить"
+    : "● Записать";
   $("#loop-record").classList.toggle("active", recording);
   $("#loop-play").textContent = playing ? "Ⅱ Пауза" : "▶ Повтор";
   $("#loop-play").classList.toggle("active", playing);
@@ -348,7 +365,9 @@ function updateLoop() {
       ? `Повторяем · ${decimals(loop.duration)} секунды`
       : loop.notes.length
         ? `Фраза · ${decimals(loop.duration)} секунды`
-        : "Сначала запиши свою мелодию →";
+        : mobileLayout.matches
+          ? "Сначала сыграй и запиши свою мелодию."
+          : "Сначала запиши свою мелодию →";
 }
 
 $("#voice-record").addEventListener("click", () => safe(() => voice.record()));
@@ -372,22 +391,30 @@ function updateVoice() {
   const enabled = hasRecording && !recording && !busy;
   $("#voice-record").disabled = busy;
   $("#voice-record").textContent = recording
-    ? "■ Закончить запись"
+    ? mobileLayout.matches
+      ? "■ Остановить запись"
+      : "■ Закончить запись"
     : voice.state === "requesting"
       ? "Разреши микрофон…"
-      : "● Записать голос";
+      : mobileLayout.matches && hasRecording
+        ? "● Записать заново"
+        : "● Записать голос";
   $("#voice-play").disabled = !enabled;
   $("#voice-play").textContent = playing
     ? "Ⅱ Пауза"
     : voice.state === "paused"
       ? "▶ Продолжить"
-      : "▶ Послушать";
+      : mobileLayout.matches
+        ? "▶ Слушать"
+        : "▶ Послушать";
   $("#voice-reset").disabled = $("#voice-delete").disabled = !enabled;
   $("#voice-effects").disabled = !enabled;
   $("#voice-download").disabled = !enabled || voice.exporting;
   $("#voice-download").textContent = voice.exporting
     ? "Сохраняем…"
-    : "Скачать запись ↓";
+    : mobileLayout.matches
+      ? "Скачать WAV ↓"
+      : "Скачать запись ↓";
   $("#voice-summary").textContent = recording
     ? "Идёт запись…"
     : voice.state === "processing"
@@ -396,9 +423,13 @@ function updateVoice() {
         ? `Запись · ${decimals(voice.buffer.duration)} секунды`
         : "Пока нет записи";
   $("#voice-caption").textContent = recording
-    ? "Твой голос становится формой"
+    ? mobileLayout.matches
+      ? "Говори — звук рисует форму"
+      : "Твой голос становится формой"
     : playing
-      ? "Теперь твой голос звучит иначе"
+      ? mobileLayout.matches
+        ? "Твой голос звучит иначе"
+        : "Теперь твой голос звучит иначе"
       : hasRecording
         ? "Твой голос готов к эксперименту"
         : "У каждого голоса есть своя форма";
@@ -406,19 +437,40 @@ function updateVoice() {
     ? "Говори — мы слушаем"
     : hasRecording
       ? "Послушай, что получилось"
-      : "Начни со своего голоса";
+      : mobileLayout.matches
+        ? "Попробуй свой голос"
+        : "Начни со своего голоса";
   $("#voice-description").textContent = recording
     ? `Запись закончится через ${VOICE_LIMIT_SECONDS} секунд. Можно остановить её раньше.`
     : hasRecording
-      ? "Меняй эффекты справа и слушай результат. Исходный голос сохраняется."
-      : `Нажми «Записать голос» и скажи что-нибудь. Можно записать до ${VOICE_LIMIT_SECONDS} секунд.`;
+      ? mobileLayout.matches
+        ? "Меняй эффекты ниже и слушай результат."
+        : "Меняй эффекты справа и слушай результат. Исходный голос сохраняется."
+      : mobileLayout.matches
+        ? `Запиши фразу до ${VOICE_LIMIT_SECONDS} секунд, затем меняй её звучание.`
+        : `Нажми «Записать голос» и скажи что-нибудь. Можно записать до ${VOICE_LIMIT_SECONDS} секунд.`;
   $("#voice-status").textContent = recording
     ? `Записываем · 0.0 / ${decimals(VOICE_LIMIT_SECONDS)} с`
     : playing
       ? "Слушаем запись…"
       : hasRecording
         ? `Твоя запись · ${decimals(voice.buffer.duration)} секунды`
-        : "Запиши фразу — и посмотри, как она звучит ↓";
+        : mobileLayout.matches
+          ? "Пока нет записи"
+          : "Запиши фразу — и посмотри, как она звучит ↓";
+  $(".voice-panel").classList.toggle(
+    "has-recording",
+    hasRecording && !recording,
+  );
+  $("#voice-play").classList.toggle("active", playing && mobileLayout.matches);
+  $(".controls-description").textContent = mobileLayout.matches
+    ? enabled
+      ? "Эффекты можно сочетать"
+      : "Эффекты доступны после записи"
+    : "Сочетай эффекты и слушай результат";
+  $(".privacy").textContent = mobileLayout.matches
+    ? "Голос остаётся в этой вкладке."
+    : "Голос обрабатывается в браузере — загрузка на сервер не нужна.";
   for (const [name, { input, display }] of effectSliders) {
     input.value = engine.effects[name];
     display();
@@ -502,15 +554,22 @@ try {
       $("#synth-caption").textContent = active
         ? sounding.length > 1
           ? "Сейчас звучит аккорд"
-          : "Звучит твоя первая нота"
+          : mobileLayout.matches
+            ? `Сейчас звучит ${NOTES[sounding[0].index].label}`
+            : "Звучит твоя первая нота"
         : "Твой звук начинается здесь";
       const labels = [...new Set(sounding.map((v) => NOTES[v.index].label))];
       $("#synth-status").textContent = active
         ? labels.join(" + ")
-        : "Нажми любую ноту внизу ↓";
-      if (loop.state === "recording")
+        : mobileLayout.matches
+          ? "Коснись любой ноты ниже"
+          : "Нажми любую ноту внизу ↓";
+      if (loop.state === "recording") {
         $("#loop-status").textContent =
           `Записываем · ${decimals(loop.elapsed)} / ${decimals(LOOP_LIMIT_SECONDS)} с`;
+        $(".loop-copy .mobile-only").textContent =
+          `${decimals(loop.elapsed)} / ${decimals(LOOP_LIMIT_SECONDS)} с`;
+      }
     } else {
       if (voice.state === "recording")
         $("#voice-status").textContent =
@@ -525,3 +584,8 @@ try {
 }
 updateLoop();
 updateVoice();
+mobileLayout.addEventListener("change", () => {
+  fitStudio();
+  updateLoop();
+  updateVoice();
+});

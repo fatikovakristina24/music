@@ -644,3 +644,335 @@ fieldset {
     transition: none !important;
   }
 }
+
+.mobile-only {
+  display: none;
+}
+@media (max-width: 600px) {
+  body {
+    background: var(--paper);
+  }
+  .desktop-only {
+    display: none;
+  }
+  .mobile-only {
+    display: initial;
+  }
+  .instrument {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    min-height: 100dvh;
+    padding: 20px;
+    border-radius: 0;
+  }
+  .header {
+    height: 133px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 44px;
+    grid-template-rows: 45px 56px;
+    gap: 16px;
+    align-items: center;
+  }
+  .brand {
+    font-size: 32px;
+    line-height: 45px;
+    letter-spacing: -1.2px;
+    margin: 0;
+  }
+  .help-button {
+    grid-column: 2;
+    grid-row: 1;
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    padding: 0;
+  }
+  .mode-switch {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    position: static;
+    transform: none;
+    width: 100%;
+    height: 56px;
+  }
+  .mode {
+    font-size: 17px;
+  }
+  .screen {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .workspace {
+    display: contents;
+  }
+  .stage {
+    order: 0;
+    height: 254px;
+    border-radius: 24px;
+    flex-shrink: 0;
+  }
+  .stage-caption {
+    top: 14px;
+    left: 16px;
+    font-size: 13px;
+    line-height: 18px;
+  }
+  .stage-status {
+    left: 16px;
+    bottom: 14px;
+    font-size: 13px;
+    line-height: 18px;
+  }
+  .stage.sounding .stage-caption {
+    color: var(--muted);
+  }
+  .section-copy {
+    order: 1;
+    margin: 0;
+  }
+  .section-copy h2 {
+    font-size: 22px;
+    line-height: 31px;
+  }
+  .section-copy p {
+    font-size: 14px;
+    line-height: 20px;
+    margin-top: 10px;
+  }
+  .pads {
+    order: 2;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    margin: -6px 0 0;
+  }
+  .pad {
+    height: 92px;
+    border-radius: 20px;
+    padding: 0 12px;
+  }
+  .pad .key {
+    display: none;
+  }
+  .pad .note {
+    top: 15px;
+    font-size: 22px;
+    line-height: 31px;
+    white-space: nowrap;
+  }
+  .pad-wave {
+    width: 100%;
+    height: 80px;
+  }
+  .loop-panel {
+    order: 3;
+    margin: 0;
+    height: auto;
+    padding: 16px;
+    border-radius: 24px;
+    grid-template-columns: 1.3fr 1.17fr 1fr;
+    gap: 12px 8px;
+  }
+  .loop-copy {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .loop-copy h3 {
+    font-size: 16px;
+    line-height: 22px;
+    font-weight: 500;
+  }
+  .loop-copy p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 400;
+  }
+  .button {
+    height: 48px;
+    padding: 0 8px;
+  }
+  #loop-status {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-size: 13px;
+    line-height: 18px;
+  }
+  .controls {
+    order: 4;
+    height: auto;
+    padding: 20px;
+    border-radius: 24px;
+  }
+  .controls h2 {
+    font-size: 20px;
+    line-height: 28px;
+  }
+  .presets {
+    margin: 16px 0;
+  }
+  .presets button {
+    height: 49px;
+  }
+  .synth-controls .slider-list {
+    margin: 0;
+    gap: 16px;
+  }
+  .slider,
+  .voice-controls .slider {
+    width: 100%;
+    height: 72px;
+    font-size: 16px;
+    line-height: 22px;
+  }
+  .slider input {
+    width: 100%;
+    top: 28px;
+    height: 44px;
+    touch-action: pan-y;
+  }
+  .slider input::-webkit-slider-thumb {
+    width: 20px;
+    height: 20px;
+    margin-top: -8px;
+  }
+  .slider input::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+  }
+  .voice-stage {
+    height: 224px;
+  }
+  #voice-caption {
+    top: auto;
+    bottom: 14px;
+  }
+  #voice-status {
+    bottom: auto;
+    top: 14px;
+  }
+  .voice-copy p {
+    margin-top: 6px;
+  }
+  .voice-panel {
+    order: 2;
+    margin: 0;
+    height: auto;
+    padding: 0;
+    background: transparent;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  #voice-record {
+    grid-column: 1 / -1;
+    height: 52px;
+  }
+  #voice-play {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  #voice-reset {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  #voice-delete {
+    grid-column: 2;
+    grid-row: 3;
+  }
+  .voice-result {
+    display: contents;
+  }
+  #voice-summary {
+    display: none;
+  }
+  .voice-panel:not(.has-recording) #voice-delete {
+    display: none;
+  }
+  .voice-panel.has-recording #voice-download {
+    grid-column: 1;
+    grid-row: 3;
+    display: block;
+    height: 48px;
+    background: var(--line);
+    color: var(--ink);
+    padding: 0 8px;
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+  }
+  .voice-controls {
+    order: 3;
+  }
+  .controls-description {
+    margin-top: 16px;
+    font-size: 13px;
+    line-height: 18px;
+  }
+  .voice-controls fieldset {
+    margin-top: 16px;
+  }
+  .voice-controls .slider-list {
+    gap: 16px;
+  }
+  .voice-controls .slider input {
+    top: 14px;
+  }
+  .controls-footnote {
+    display: none;
+  }
+  .privacy {
+    order: 4;
+    margin: 0;
+    font-size: 13px;
+    line-height: 18px;
+  }
+  .dialog {
+    width: 414px;
+    max-width: 100%;
+    max-height: calc(100dvh - 24px);
+    padding: 20px;
+    border-radius: 24px;
+  }
+  .dialog h2 {
+    font-size: 22px;
+    line-height: 31px;
+    padding-right: 48px;
+    letter-spacing: 0;
+  }
+  .dialog-close {
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    font-size: 22px;
+  }
+  .help-steps.mobile-only {
+    display: grid;
+    margin: 32px 0 20px;
+    gap: 20px;
+  }
+  .help-steps h3 {
+    font-size: 18px;
+    line-height: 25px;
+    margin-bottom: 6px;
+  }
+  .help-steps p {
+    font-size: 14px;
+    line-height: 20px;
+  }
+}
+@media (max-width: 360px) {
+  .pad .note {
+    font-size: 20px;
+    left: 10px;
+  }
+  .loop-panel .button {
+    font-size: 12px;
+    padding-inline: 4px;
+  }
+}

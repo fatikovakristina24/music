@@ -1,4 +1,4 @@
-import { NOTE_MOTION, contourPoint } from "./note-motion.js?v=20261004-2";
+import { NOTE_MOTION, contourPoint } from "./note-motion.js?v=20261004-mobile1";
 
 const INK = "#f3f3f0";
 const SIGNAL = "#a9b2ff";
@@ -32,6 +32,7 @@ export class SoundVisuals {
     this.mode = "play";
     this.energy = 0;
     this.noteLevels = Array(8).fill(0);
+    this.mobileLayout = matchMedia("(max-width: 600px)");
     this.reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
     this.storage = {
       wave: new Float32Array(2048),
@@ -75,6 +76,22 @@ export class SoundVisuals {
     this.onFrame(now);
     requestAnimationFrame(this.frame);
   }
+  fitStage(ctx, width, height, voice) {
+    if (!this.mobileLayout.matches) {
+      ctx.scale(width / 952, height / (voice ? 560 : 440));
+      return;
+    }
+    // Сохраняем пропорции контуров и поля вокруг подписей мобильного макета.
+    const ratio = width / 374;
+    const scale = voice ? 0.4 : 0.47;
+    const baseHeight = voice ? 224 : 254;
+    ctx.translate(
+      (voice ? -3 : 22 - 116 * scale) * ratio,
+      (height - baseHeight * ratio) / 2 +
+        (voice ? 4.8 : 32 - 4 * scale) * ratio,
+    );
+    ctx.scale(scale * ratio, scale * ratio);
+  }
   drawSynth(time, now) {
     const canvas = this.synthCanvas,
       ctx = canvas.getContext("2d");
@@ -83,7 +100,7 @@ export class SoundVisuals {
     if (!width) return;
     ctx.clearRect(0, 0, width, height);
     ctx.save();
-    ctx.scale(width / 952, height / 440);
+    this.fitStage(ctx, width, height, false);
     const notes = [...this.engine.voices].filter(
       (v) => v.start <= now && v.end > now,
     );
@@ -145,7 +162,7 @@ export class SoundVisuals {
     if (!width) return;
     ctx.clearRect(0, 0, width, height);
     ctx.save();
-    ctx.scale(width / 952, height / 560);
+    this.fitStage(ctx, width, height, true);
     const active =
       ["recording", "playing"].includes(this.voice.state) || this.energy > 0.02;
     if (active || this.voice.buffer) {

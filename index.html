@@ -10,8 +10,8 @@
     />
     <title>КОНТУР — звук становится формой</title>
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="styles.css?v=20261004-2" />
-    <script type="module" src="js/app.js?v=20261004-2"></script>
+    <link rel="stylesheet" href="styles.css?v=20261004-mobile1" />
+    <script type="module" src="js/app.js?v=20261004-mobile1"></script>
   </head>
   <body>
     <main class="instrument" aria-label="Синтезатор КОНТУР">
@@ -25,8 +25,13 @@
             Мой голос
           </button>
         </nav>
-        <button id="help-open" class="button help-button">
-          Как это работает?
+        <button
+          id="help-open"
+          class="button help-button"
+          aria-label="Как это работает?"
+        >
+          <span class="desktop-only">Как это работает?</span>
+          <span class="mobile-only" aria-hidden="true">?</span>
         </button>
       </header>
 
@@ -60,15 +65,24 @@
         <div class="section-copy">
           <h2>Сыграй мелодию</h2>
           <p>
-            Нажимай мышью или клавишами A–K. Удерживай несколько нот, чтобы
-            услышать сочетание.
+            <span class="desktop-only"
+              >Нажимай мышью или клавишами A–K. Удерживай несколько нот, чтобы
+              услышать сочетание.</span
+            >
+            <span class="mobile-only"
+              >Касайся и удерживай. Можно играть<br />несколько нот двумя
+              пальцами.</span
+            >
           </p>
         </div>
         <div class="pads" id="pads" aria-label="Ноты"></div>
         <div class="loop-panel">
           <div class="loop-copy">
             <h3>Твоя фраза</h3>
-            <p>Запиши до 20 секунд музыки</p>
+            <p>
+              <span class="desktop-only">Запиши до 20 секунд музыки</span
+              ><span class="mobile-only">До 20 секунд</span>
+            </p>
           </div>
           <button id="loop-record" class="button">● Записать</button>
           <button id="loop-play" class="button" disabled>▶ Повтор</button>
@@ -142,8 +156,11 @@
       >
         ×
       </button>
-      <h2 id="help-title">Звук — это просто</h2>
-      <ol class="help-steps">
+      <h2 id="help-title">
+        <span class="desktop-only">Звук — это просто</span
+        ><span class="mobile-only">Как это работает?</span>
+      </h2>
+      <ol class="help-steps desktop-only">
         <li>
           <span>01</span>
           <div>
@@ -175,7 +192,42 @@
           </div>
         </li>
       </ol>
-      <p class="help-hint">
+      <ol class="help-steps mobile-only">
+        <li>
+          <div>
+            <h3>Играй касанием</h3>
+            <p>
+              Нажми и удерживай пэд. Несколько пальцев — несколько нот
+              одновременно.
+            </p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <h3>Создай свою фразу</h3>
+            <p>
+              Нажми «Записать» и сыграй мелодию. До 20 секунд. Затем включи
+              «Повтор».
+            </p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <h3>Поменяй голос</h3>
+            <p>
+              Разреши микрофон и запиши фразу. Слушай её и сочетай семь
+              эффектов.
+            </p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <h3>Следи за формой</h3>
+            <p>У каждой ноты свой рисунок. Громкость меняет силу движения.</p>
+          </div>
+        </li>
+      </ol>
+      <p class="help-hint desktop-only">
         Можно удерживать несколько нот. Музыкальный опыт не нужен.<br />В режиме
         голоса пробел запускает и приостанавливает прослушивание.
       </p>
