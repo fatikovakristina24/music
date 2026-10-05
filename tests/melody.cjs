@@ -16,7 +16,7 @@ fs.mkdirSync(output, { recursive: true });
     await page.goto(process.env.CONTOUR_URL || "http://localhost:4173");
     const render = await page.evaluate(async () => {
       const { AudioEngine } = await import(
-        "./js/audio/engine.js?v=20261004-melody1"
+        "./js/audio/engine.js?v=20261005-stereo1"
       );
       const engine = new AudioEngine();
       const rms = (buffer, start, end) => {
@@ -47,17 +47,27 @@ fs.mkdirSync(output, { recursive: true });
         echo: 0,
         release: 0.1,
       };
+      engine.layers[0] = {
+        preset: "soft",
+        volume: 65,
+        filter: 6000,
+        pan: -100,
+        room: 0,
+        echo: 0,
+      };
+      engine.layers[1].volume = 0;
+      engine.layers[1].room = engine.layers[1].echo = 0;
       const chord = await engine.exportMelody(notes, 1.4);
       const solo = await engine.exportMelody(
         [{ index: 0, time: 0, duration: 0.4 }],
         0.5,
       );
-      engine.synthSettings.preset = "bass";
+      engine.layers[0].preset = "bass";
       const bass = await engine.exportMelody(
         [{ index: 0, time: 0, duration: 0.4 }],
         0.5,
       );
-      engine.synthSettings.echo = 80;
+      engine.layers[0].echo = 60;
       const echo = await engine.exportMelody(
         [{ index: 0, time: 0, duration: 0.4 }],
         0.5,

@@ -1,10 +1,10 @@
-import { AudioEngine, NOTES } from "./audio/engine.js?v=20261004-melody1";
-import { NoteLoop, LOOP_LIMIT_SECONDS } from "./loop.js?v=20261004-melody1";
+import { AudioEngine, NOTES } from "./audio/engine.js?v=20261005-stereo1";
+import { NoteLoop, LOOP_LIMIT_SECONDS } from "./loop.js?v=20261005-stereo1";
 import {
   VoiceRecorder,
   VOICE_LIMIT_SECONDS,
-} from "./voice.js?v=20261004-melody1";
-import { SoundVisuals } from "./visuals.js?v=20261004-tablet1";
+} from "./voice.js?v=20261005-stereo1";
+import { SoundVisuals } from "./visuals.js?v=20261005-stereo1";
 
 const $ = (selector) => document.querySelector(selector);
 const compactLayout = matchMedia("(max-width: 1100px)");
@@ -26,24 +26,37 @@ const releases = Array(NOTES.length).fill(0);
 const decimals = (number) => number.toFixed(1);
 const signed = (number) => (number > 0 ? `+${number}` : `${number}`);
 
+let selectedLayer = 0;
 const synthParameters = [
   {
     name: "release",
-    label: "Длина звука",
+    label: "Затухание нот",
     min: 0.1,
     max: 4,
     step: 0.1,
     value: 1.8,
-    format: (value) => `${decimals(value)} s`,
+    format: (v) => `${decimals(v)} s`,
   },
   {
-    name: "echo",
-    label: "Эхо",
-    min: 0,
-    max: 60,
+    name: "filter",
+    label: "Фильтр",
+    min: 100,
+    max: 6000,
+    step: 50,
+    value: 2400,
+    format: (v) => `${v} Hz`,
+  },
+  { name: "echo", label: "Эхо", min: 0, max: 60, step: 1, value: 24 },
+  { name: "room", label: "Комната", min: 0, max: 100, step: 1, value: 18 },
+  {
+    name: "pan",
+    label: "Слева / справа",
+    min: -100,
+    max: 100,
     step: 1,
-    value: 24,
-    format: (value) => `${value} %`,
+    value: -100,
+    format: (v) =>
+      v === 0 ? "Центр" : `${Math.abs(v)} % ${v < 0 ? "L" : "R"}`,
   },
   {
     name: "volume",
@@ -52,7 +65,6 @@ const synthParameters = [
     max: 100,
     step: 1,
     value: 65,
-    format: (value) => `${value} %`,
   },
 ];
 const voiceParameters = [
@@ -140,9 +152,45 @@ function slider(container, config, prefix, onChange) {
   container.append(element);
   return { input, display };
 }
-for (const config of synthParameters)
-  slider($("#synth-sliders"), config, "synth", (name, value) =>
-    engine.updateSynth(name, value),
+const synthSliders = new Map(
+  synthParameters.map((config) => [
+    config.name,
+    slider($("#synth-sliders"), config, "synth", (name, value) => {
+      if (name === "release") engine.updateSynth(name, value);
+      else engine.updateLayer(selectedLayer, name, value);
+    }),
+  ]),
+);
+function selectLayer(index) {
+  selectedLayer = index;
+  document.querySelectorAll("[data-layer]").forEach((button) => {
+    const selected = Number(button.dataset.layer) === index;
+    button.classList.toggle("selected", selected);
+    button.setAttribute("aria-pressed", String(selected));
+  });
+  document.querySelectorAll("[data-preset]").forEach((button) => {
+    const selected = button.dataset.preset === engine.layers[index].preset;
+    button.classList.toggle("selected", selected);
+    button.setAttribute("aria-pressed", String(selected));
+  });
+  for (const [name, control] of synthSliders) {
+    control.input.value =
+      name === "release"
+        ? engine.synthSettings.release
+        : engine.layers[index][name];
+    control.display();
+  }
+  $("#synth-sliders").setAttribute(
+    "aria-label",
+    `Настройки голоса ${index === 0 ? "A" : "B"}`,
+  );
+}
+document
+  .querySelectorAll("[data-layer]")
+  .forEach((button) =>
+    button.addEventListener("click", () =>
+      selectLayer(Number(button.dataset.layer)),
+    ),
   );
 const effectSliders = new Map(
   voiceParameters.map((config) => [
@@ -319,7 +367,7 @@ $("#mode-play").addEventListener("click", () => setMode("play"));
 $("#mode-voice").addEventListener("click", () => setMode("voice"));
 document.querySelectorAll("[data-preset]").forEach((button) =>
   button.addEventListener("click", () => {
-    engine.updateSynth("preset", button.dataset.preset);
+    engine.updateLayer(selectedLayer, "preset", button.dataset.preset);
     document.querySelectorAll("[data-preset]").forEach((other) => {
       const selected = other === button;
       other.classList.toggle("selected", selected);

@@ -10,8 +10,8 @@
     />
     <title>КОНТУР — звук становится формой</title>
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="styles.css?v=20261004-tablet1" />
-    <script type="module" src="js/app.js?v=20261004-tablet1"></script>
+    <link rel="stylesheet" href="styles.css?v=20261005-stereo1" />
+    <script type="module" src="js/app.js?v=20261005-stereo1"></script>
   </head>
   <body>
     <main class="instrument" aria-label="Синтезатор КОНТУР">
@@ -51,7 +51,17 @@
             </p>
           </div>
           <aside class="controls synth-controls" aria-label="Настройки звука">
-            <h2>Выбери звучание</h2>
+            <h2>Два голоса</h2>
+            <p class="layer-description">
+              Оба звучат вместе. Выбери голос,<br />чтобы изменить его
+              настройки.
+            </p>
+            <div class="layer-switch" aria-label="Голос для настройки">
+              <button data-layer="0" class="selected" aria-pressed="true">
+                Голос A
+              </button>
+              <button data-layer="1" aria-pressed="false">Голос B</button>
+            </div>
             <div class="presets" aria-label="Тембр">
               <button data-preset="soft" class="selected" aria-pressed="true">
                 Мягкий
@@ -189,8 +199,9 @@
           <div>
             <h3>Измени звук и посмотри на форму</h3>
             <p>
-              Выбери звучание или подвигай ползунки.<br />Чем сильнее звук, тем
-              заметнее движение формы.
+              Настрой голоса A и B: тембр, фильтр, эхо,<br />комнату, громкость
+              и положение слева / справа. Чем сильнее звук, тем заметнее
+              движение формы.
             </p>
           </div>
         </li>
@@ -209,8 +220,8 @@
           <div>
             <h3>Создай свою фразу</h3>
             <p>
-              Нажми «Записать» и сыграй мелодию. До 20 секунд. Затем включи
-              «Повтор».
+              Настрой оба голоса A и B ниже. Нажми «Записать» и сыграй до 20
+              секунд. Затем включи «Повтор».
             </p>
           </div>
         </li>

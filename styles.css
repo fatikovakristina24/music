@@ -171,7 +171,7 @@ p {
 }
 .stage {
   position: relative;
-  height: 440px;
+  height: 568px;
   overflow: hidden;
   border-radius: 36px;
   background: var(--surface);
@@ -203,7 +203,7 @@ p {
   color: var(--ink);
 }
 .controls {
-  height: 440px;
+  height: 568px;
   padding: 20px 22px;
   background: var(--surface);
   border-radius: 32px;
@@ -216,12 +216,11 @@ p {
 .presets {
   display: flex;
   gap: 4px;
-  margin-top: 18px;
-  margin-left: -1px;
+  margin: 12px 0 0;
 }
 .presets button {
   flex: 1;
-  height: 44px;
+  height: 40px;
   padding: 0 4px;
   border-radius: 14px;
   background: var(--line);
@@ -233,10 +232,45 @@ p {
   background: var(--hover);
   color: var(--ink);
 }
+.layer-description {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+.layer-switch {
+  display: flex;
+  gap: 4px;
+  margin-top: 12px;
+}
+.layer-switch button {
+  flex: 1;
+  height: 40px;
+  border-radius: 14px;
+  background: var(--line);
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+.layer-switch button.selected {
+  background: var(--accent);
+  color: var(--ink);
+}
+.layer-switch button:not(.selected):hover {
+  background: var(--hover);
+  color: var(--ink);
+}
 .synth-controls .slider-list {
-  margin-top: 37px;
+  margin-top: 16px;
   display: grid;
-  gap: 12px;
+  gap: 0;
+}
+.synth-controls .slider {
+  width: 100%;
+  height: 56px;
+}
+.synth-controls .slider input {
+  width: 100%;
 }
 .slider {
   width: 270px;
@@ -833,16 +867,28 @@ fieldset {
     line-height: 28px;
   }
   .presets {
-    margin: 16px 0;
+    margin: 16px 0 0;
   }
   .presets button {
     height: 49px;
   }
   .synth-controls .slider-list {
-    margin: 0;
+    margin-top: 16px;
     gap: 16px;
   }
+  .layer-description {
+    font-size: 14px;
+    line-height: 18px;
+  }
+  .layer-switch {
+    margin-top: 16px;
+  }
+  .layer-switch button {
+    height: 48px;
+    font-size: 16px;
+  }
   .slider,
+  .synth-controls .slider,
   .voice-controls .slider {
     width: 100%;
     height: 72px;
@@ -1072,22 +1118,21 @@ fieldset {
   .synth-controls {
     position: relative;
   }
-  .synth-controls h2 {
-    display: flex;
-    align-items: center;
-    height: 49px;
+  .layer-description br {
+    display: none;
   }
+  .layer-description {
+    line-height: 20px;
+  }
+  .layer-switch,
   .presets {
-    position: absolute;
-    top: 24px;
-    right: 24px;
-    width: min(320px, 48%);
-    margin: 0;
+    margin-top: 12px;
   }
   .synth-controls .slider-list {
     margin-top: 24px;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 28px;
+    column-gap: 28px;
+    row-gap: 24px;
   }
   .slider {
     min-width: 0;

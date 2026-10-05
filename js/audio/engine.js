@@ -4,6 +4,12 @@ import {
   effectTail,
   effectivePitch,
 } from "./effects.js";
+import {
+  DEFAULT_LAYERS,
+  PRESETS,
+  createSynthChannel,
+  synthEffectTail,
+} from "./synth-channel.js";
 import { shiftBuffer } from "./pitch-dsp.js";
 
 export const NOTES = [
@@ -20,7 +26,8 @@ export const NOTES = [
 export class AudioEngine {
   constructor() {
     this.context = null;
-    this.synthSettings = { preset: "soft", release: 1.8, echo: 24, volume: 65 };
+    this.synthSettings = { release: 1.8, volume: 65 };
+    this.layers = DEFAULT_LAYERS.map((layer) => ({ ...layer }));
     this.effects = { ...DEFAULT_EFFECTS };
     this.voices = new Set();
     this.voiceLimit = 32;
@@ -56,16 +63,10 @@ export class AudioEngine {
     this.synthVolume.gain.value = this.synthEnabled
       ? this.synthSettings.volume / 100
       : 0;
-    const echo = ctx.createDelay();
-    echo.delayTime.value = 0.32;
-    const feedback = ctx.createGain();
-    feedback.gain.value = 0.32;
-    this.echoWet = ctx.createGain();
-    this.echoWet.gain.value = this.synthSettings.echo / 100;
     this.synthInput.connect(this.synthVolume);
-    this.synthInput.connect(echo);
-    echo.connect(feedback).connect(echo);
-    echo.connect(this.echoWet).connect(this.synthVolume);
+    this.channels = this.layers.map((settings, index) =>
+      createSynthChannel(ctx, settings, this.synthInput, index),
+    );
     this.synthVolume
       .connect(limiter)
       .connect(this.master)
@@ -103,12 +104,12 @@ export class AudioEngine {
         this.context.currentTime,
         0.02,
       );
-    if (name === "echo")
-      this.echoWet.gain.setTargetAtTime(
-        value / 100,
-        this.context.currentTime,
-        0.02,
-      );
+  }
+
+  updateLayer(index, name, value) {
+    if (!this.layers[index]) return;
+    this.layers[index][name] = value;
+    this.channels?.[index].update(name, value);
   }
 
   setSynthEnabled(enabled) {
@@ -125,36 +126,25 @@ export class AudioEngine {
     const ctx = this.context;
     if (this.voices.size >= this.voiceLimit) [...this.voices][0].kill();
     const settings = { ...this.synthSettings };
-    const gain = ctx.createGain();
-    gain.gain.value = 0;
-    const filter = ctx.createBiquadFilter();
-    filter.type = "lowpass";
-    filter.Q.value = 0.65;
-    const presets = {
-      soft: { type: "sine", octave: 1, cutoff: 2400, attack: 0.035, gain: 0.2 },
-      bass: {
-        type: "triangle",
-        octave: 0.5,
-        cutoff: 950,
-        attack: 0.015,
-        gain: 0.23,
-      },
-      bright: {
-        type: "sawtooth",
-        octave: 1,
-        cutoff: 4000,
-        attack: 0.012,
-        gain: 0.13,
-      },
-    };
-    const preset = presets[settings.preset];
-    filter.frequency.value = preset.cutoff;
-    const oscillator = ctx.createOscillator();
-    oscillator.type = preset.type;
-    oscillator.frequency.value = NOTES[index].frequency * preset.octave;
-    oscillator.connect(filter).connect(gain).connect(this.synthInput);
-    gain.gain.setValueAtTime(0, when);
-    gain.gain.linearRampToValueAtTime(preset.gain, when + preset.attack);
+    const sources = this.layers.map((layer, channel) => {
+      const preset = PRESETS[layer.preset];
+      const gain = ctx.createGain();
+      gain.gain.value = 0;
+      const filter = ctx.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.Q.value = 0.65;
+      filter.frequency.value = preset.cutoff;
+      const oscillator = ctx.createOscillator();
+      oscillator.type = preset.type;
+      oscillator.frequency.value = NOTES[index].frequency * preset.octave;
+      oscillator
+        .connect(filter)
+        .connect(gain)
+        .connect(this.channels[channel].input);
+      gain.gain.setValueAtTime(0, when);
+      gain.gain.linearRampToValueAtTime(preset.gain, when + preset.attack);
+      return { gain, filter, oscillator, preset };
+    });
     const voice = {
       index,
       start: when,
@@ -162,40 +152,48 @@ export class AudioEngine {
       gateEnd: Infinity,
       released: false,
       kill: () => {
-        gain.gain.cancelScheduledValues(ctx.currentTime);
-        gain.gain.setTargetAtTime(0, ctx.currentTime, 0.008);
+        for (const { gain } of sources) {
+          gain.gain.cancelScheduledValues(ctx.currentTime);
+          gain.gain.setTargetAtTime(0, ctx.currentTime, 0.008);
+        }
         voice.gateEnd = ctx.currentTime;
         voice.end = ctx.currentTime + 0.04;
         voice.released = true;
-        oscillator.stop(voice.end);
+        for (const { oscillator } of sources) oscillator.stop(voice.end);
       },
       stop: (time = ctx.currentTime, release = settings.release) => {
         if (voice.released) return;
         time = Math.max(time, when + 0.04);
         voice.released = true;
         voice.gateEnd = time;
-        // Сохраняем текущую громкость, чтобы короткий клик не обрывался скачком.
-        if (gain.gain.cancelAndHoldAtTime) gain.gain.cancelAndHoldAtTime(time);
-        else {
-          gain.gain.cancelScheduledValues(time);
-          gain.gain.setValueAtTime(
-            preset.gain * Math.min(1, Math.max(0, time - when) / preset.attack),
-            time,
-          );
+        for (const { gain, preset, oscillator } of sources) {
+          if (gain.gain.cancelAndHoldAtTime)
+            gain.gain.cancelAndHoldAtTime(time);
+          else {
+            gain.gain.cancelScheduledValues(time);
+            gain.gain.setValueAtTime(
+              preset.gain *
+                Math.min(1, Math.max(0, time - when) / preset.attack),
+              time,
+            );
+          }
+          gain.gain.setTargetAtTime(0, time, Math.max(0.008, release / 4.5));
+          oscillator.stop(time + release + 0.04);
         }
-        gain.gain.setTargetAtTime(0, time, Math.max(0.008, release / 4.5));
         voice.end = time + release + 0.04;
-        oscillator.stop(voice.end);
       },
     };
-    oscillator.onended = () => {
-      this.voices.delete(voice);
-      oscillator.disconnect();
-      filter.disconnect();
-      gain.disconnect();
-    };
+    let remaining = sources.length;
+    for (const { oscillator, filter, gain } of sources) {
+      oscillator.onended = () => {
+        oscillator.disconnect();
+        filter.disconnect();
+        gain.disconnect();
+        if (--remaining === 0) this.voices.delete(voice);
+      };
+      oscillator.start(when);
+    }
     this.voices.add(voice);
-    oscillator.start(when);
     if (gateDuration !== null) voice.stop(when + Math.max(0.04, gateDuration));
     return voice;
   }
@@ -264,7 +262,8 @@ export class AudioEngine {
       duration,
       ...notes.map((n) => n.time + n.duration),
     );
-    const tail = settings.release + 0.04 + (settings.echo > 0 ? 2.56 : 0);
+    const tail =
+      settings.release + 0.04 + Math.max(...this.layers.map(synthEffectTail));
     const OfflineContext =
       window.OfflineAudioContext || window.webkitOfflineAudioContext;
     const offline = new OfflineContext(
@@ -274,6 +273,7 @@ export class AudioEngine {
     );
     const renderer = new AudioEngine();
     renderer.synthSettings = settings;
+    renderer.layers = this.layers.map((layer) => ({ ...layer }));
     // Ноты планируются сразу на весь файл, а не только на ближайший момент.
     renderer.voiceLimit = Infinity;
     renderer.initialize(offline);

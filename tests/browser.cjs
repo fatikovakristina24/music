@@ -97,8 +97,8 @@ fs.writeFileSync(fixture, wav);
     assert.equal(bounds["#synth-stage"].x, 48);
     assert.equal(bounds["#synth-stage"].y, 116);
     assert.equal(bounds[".synth-controls"].x, 1048);
-    assert.ok(Math.abs(bounds[".pads"].y - 674) < 1);
-    assert.ok(Math.abs(bounds[".loop-panel"].y - 850) < 1);
+    assert.ok(Math.abs(bounds[".pads"].y - 802) < 1);
+    assert.ok(Math.abs(bounds[".loop-panel"].y - 978) < 1);
 
     for (const width of [1280, 775, 1101]) {
       await page.setViewportSize({ width, height: 960 });
@@ -126,7 +126,7 @@ fs.writeFileSync(fixture, wav);
         assert.equal(scaled.height, 340);
       } else {
         assert.ok(Math.abs(scaled.x - (48 * width) / 1440) < 1);
-        assert.ok(Math.abs(scaled.width / scaled.height - 952 / 440) < 0.01);
+        assert.ok(Math.abs(scaled.width / scaled.height - 952 / 568) < 0.01);
       }
       assert.equal(
         scaled.overflow,
@@ -160,10 +160,16 @@ fs.writeFileSync(fixture, wav);
     assert.equal(await page.locator(".pad.pressed").count(), 3);
     assert.ok((await rms()) > 0.02, "Chord produces real audio");
     await page.screenshot({ path: path.join(output, "synth-active.png") });
+    await page.locator('[data-layer="1"]').click();
+    await range("#synth-volume", 0);
+    await page.locator('[data-layer="0"]').click();
     await range("#synth-volume", 0);
     await page.waitForTimeout(400);
     assert.ok((await rms()) < 0.001, "Volume slider actually mutes");
     await range("#synth-volume", 65);
+    await page.locator('[data-layer="1"]').click();
+    await range("#synth-volume", 50);
+    await page.locator('[data-layer="0"]').click();
     await page.keyboard.up("KeyA");
     await page.keyboard.up("KeyD");
     await page.keyboard.up("KeyG");

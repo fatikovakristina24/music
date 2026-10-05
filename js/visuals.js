@@ -92,7 +92,8 @@ export class SoundVisuals {
       return;
     }
     if (!this.mobileLayout.matches) {
-      ctx.scale(width / 952, height / (voice ? 560 : 440));
+      ctx.translate(0, voice ? 0 : (height - (440 * width) / 952) / 2);
+      ctx.scale(width / 952, voice ? height / 560 : width / 952);
       return;
     }
     // Сохраняем пропорции контуров и поля вокруг подписей мобильного макета.
