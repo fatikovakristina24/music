@@ -1,11 +1,11 @@
-import { AudioEngine, NOTES } from "./audio/engine.js?v=20261005-library1";
-import { NoteLoop, LOOP_LIMIT_SECONDS } from "./loop.js?v=20261005-library1";
+import { AudioEngine, NOTES } from "./audio/engine.js?v=20261005-judas1";
+import { NoteLoop, LOOP_LIMIT_SECONDS } from "./loop.js?v=20261005-judas1";
 import {
   VoiceRecorder,
   VOICE_LIMIT_SECONDS,
-} from "./voice.js?v=20261005-library1";
-import { SoundVisuals } from "./visuals.js?v=20261005-library1";
-import { MELODIES, MelodyPlayer } from "./melodies.js?v=20261005-library1";
+} from "./voice.js?v=20261005-judas1";
+import { SoundVisuals } from "./visuals.js?v=20261005-judas1";
+import { MELODIES, MelodyPlayer } from "./melodies.js?v=20261005-judas1";
 
 const $ = (selector) => document.querySelector(selector);
 const compactLayout = matchMedia("(max-width: 1100px)");
@@ -418,7 +418,7 @@ melodyPlayer.addEventListener("change", () => {
   $("#melody-stop").disabled = !melodyPlayer.playing;
   const text = melodyPlayer.playing
     ? `Играет: ${melodyPlayer.selected.title}`
-    : "20 мелодий на выбор";
+    : `${MELODIES.length} мелодия на выбор`;
   $("#melody-status").textContent = text;
   $("#melody-status").title = text;
   document

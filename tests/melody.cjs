@@ -16,7 +16,7 @@ fs.mkdirSync(output, { recursive: true });
     await page.goto(process.env.CONTOUR_URL || "http://localhost:4173");
     const render = await page.evaluate(async () => {
       const { AudioEngine } = await import(
-        "./js/audio/engine.js?v=20261005-library1"
+        "./js/audio/engine.js?v=20261005-judas1"
       );
       const engine = new AudioEngine();
       const rms = (buffer, start, end) => {
