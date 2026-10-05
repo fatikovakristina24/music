@@ -1,11 +1,11 @@
-import { AudioEngine, NOTES } from "./audio/engine.js?v=20261005-center2";
-import { NoteLoop, LOOP_LIMIT_SECONDS } from "./loop.js?v=20261005-center2";
+import { AudioEngine, NOTES } from "./audio/engine.js?v=20261005-picker1";
+import { NoteLoop, LOOP_LIMIT_SECONDS } from "./loop.js?v=20261005-picker1";
 import {
   VoiceRecorder,
   VOICE_LIMIT_SECONDS,
-} from "./voice.js?v=20261005-center2";
-import { SoundVisuals } from "./visuals.js?v=20261005-center2";
-import { MELODIES, MelodyPlayer } from "./melodies.js?v=20261005-center2";
+} from "./voice.js?v=20261005-picker1";
+import { SoundVisuals } from "./visuals.js?v=20261005-picker1";
+import { MELODIES, MelodyPlayer } from "./melodies.js?v=20261005-picker1";
 
 const $ = (selector) => document.querySelector(selector);
 const compactLayout = matchMedia("(max-width: 1100px)");
@@ -418,7 +418,9 @@ melodyPlayer.addEventListener("change", () => {
   $("#melody-stop").disabled = !melodyPlayer.playing;
   const text = melodyPlayer.playing
     ? `Играет: ${melodyPlayer.selected.title}`
-    : `${MELODIES.length} мелодий на выбор`;
+    : `${MELODIES.length} мелодий · выбери и послушай`;
+  $("#melody-selected").textContent =
+    melodyPlayer.selected?.title || "Выбрать мелодию";
   $("#melody-status").textContent = text;
   $("#melody-status").title = text;
   document

@@ -372,48 +372,118 @@ p {
   color: var(--muted);
   font-size: 16px;
 }
+/* Выбор готовой темы и остановка объединены в один элемент. */
 .melody-toolbar {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
   margin-top: 12px;
+  width: 420px;
+  max-width: 100%;
+}
+.melody-picker {
+  display: flex;
+  align-items: stretch;
+  position: relative;
+  width: 100%;
+  height: 56px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
 }
 .melody-library {
-  position: relative;
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 0;
 }
 .melody-library summary {
   display: flex;
+  height: 54px;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  gap: 16px;
+  padding: 9px 16px;
   list-style: none;
   cursor: pointer;
+  border-radius: 15px 0 0 15px;
 }
 .melody-library summary::-webkit-details-marker {
   display: none;
 }
-.melody-library[open] summary {
-  background: var(--accent);
+.melody-library summary:hover {
+  background: var(--line);
+}
+.melody-library summary:focus-visible {
+  outline: 2px solid var(--record);
+  outline-offset: 3px;
+}
+.melody-picker-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+.melody-picker-copy small {
+  font-size: 11px;
+  line-height: 15px;
+  color: var(--muted);
+}
+#melody-selected {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.melody-chevron {
+  flex-shrink: 0;
+  transition: transform 0.15s;
+  color: var(--muted);
+}
+.melody-library[open] .melody-chevron {
+  transform: rotate(180deg);
   color: var(--ink);
+}
+#melody-stop {
+  display: grid;
+  place-items: center;
+  flex: 0 0 55px;
+  height: 54px;
+  padding: 0;
+  border-radius: 0 15px 15px 0;
+  border-left: 1px solid var(--line);
+  background: transparent;
+  color: var(--record);
+}
+#melody-stop:disabled {
+  color: var(--muted);
+  opacity: 0.45;
+}
+#melody-stop:not(:disabled):hover {
+  background: var(--line);
+}
+#melody-stop:focus-visible {
+  outline: 2px solid var(--record);
+  outline-offset: 3px;
 }
 .melody-menu {
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
-  width: 360px;
+  width: 100%;
   max-height: min(400px, 60vh);
   overflow-y: auto;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 20px;
-  padding: 12px;
+  border-radius: 16px;
+  padding: 8px;
   z-index: 30;
   box-shadow: 0 12px 32px #0008;
 }
 .melody-menu-hint {
-  padding: 8px;
-  font-size: 13px;
+  padding: 10px 12px;
+  font-size: 12px;
   color: var(--muted);
 }
 .melody-item {
@@ -424,7 +494,7 @@ p {
   min-height: 58px;
   padding: 10px 12px;
   text-align: left;
-  border-radius: 12px;
+  border-radius: 10px;
   background: transparent;
   color: var(--ink);
   font-size: 14px;
@@ -442,37 +512,19 @@ p {
   background: var(--tint);
 }
 #melody-status {
-  min-width: 0;
+  display: block;
+  width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 12px;
+  line-height: 18px;
+  padding-left: 2px;
 }
 @media (max-width: 600px) {
   .melody-toolbar {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .melody-library {
-    flex: 1;
-    min-width: 0;
-  }
-  .melody-library summary {
-    gap: 8px;
-    padding-inline: 12px;
-    font-size: 14px;
-  }
-  .melody-menu {
-    width: min(374px, calc(100vw - 40px));
-  }
-  #melody-stop {
-    width: 80px;
-  }
-  #melody-status {
-    flex-basis: 100%;
-    font-size: 12px;
-    line-height: 18px;
+    width: 100%;
   }
 }
 .pads {

@@ -9,7 +9,7 @@ import {
   PRESETS,
   createSynthChannel,
   synthEffectTail,
-} from "./synth-channel.js?v=20261005-center2";
+} from "./synth-channel.js?v=20261005-picker1";
 import { shiftBuffer } from "./pitch-dsp.js";
 
 export const NOTES = [
