@@ -24,7 +24,7 @@ const assert = require("node:assert/strict");
     });
     await page.goto(process.env.CONTOUR_URL || "http://localhost:4173");
     const themes = await page.evaluate(async () => {
-      const { MELODIES } = await import("./js/melodies.js?v=20261005-judas1");
+      const { MELODIES } = await import("./js/melodies.js?v=20261005-center1");
       return MELODIES.map((m) => ({
         id: m.id,
         title: m.title,

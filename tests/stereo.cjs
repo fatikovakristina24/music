@@ -29,9 +29,12 @@ const fs = require("node:fs");
     await page.goto(process.env.CONTOUR_URL || "http://localhost:4173");
     const report = await page.evaluate(async () => {
       const { AudioEngine } = await import(
-        "./js/audio/engine.js?v=20261005-judas1"
+        "./js/audio/engine.js?v=20261005-center1"
       );
       const engine = new AudioEngine();
+      const initialPan = engine.layers.map((layer) => layer.pan);
+      engine.layers[0].pan = -100;
+      engine.layers[1].pan = 100;
       engine.synthSettings.release = 0.1;
       engine.layers.forEach((layer) => {
         layer.room = layer.echo = 0;
@@ -87,6 +90,7 @@ const fs = require("node:fs");
       engine.layers[1].volume = 0;
       const muted = await render();
       return {
+        initialPan,
         both: [rms(both, 0), rms(both, 1)],
         disabledA: [rms(disabledA, 0), rms(disabledA, 1)],
         disabledB: [rms(disabledB, 0), rms(disabledB, 1)],
@@ -101,6 +105,12 @@ const fs = require("node:fs");
         mute: [rms(muted, 0), rms(muted, 1)],
       };
     });
+    assert.deepEqual(
+      report.initialPan,
+      [0, 0],
+      "Both voices start in the centre",
+    );
+    assert.equal(await page.locator("#synth-pan").inputValue(), "0");
     assert.ok(
       report.both.every((value) => value > 0.005),
       "Both channels sound simultaneously",
@@ -147,6 +157,8 @@ const fs = require("node:fs");
     await range("#synth-volume", 17);
     await page.locator('[data-preset="bright"]').click();
     await page.locator('[data-layer="1"]').click();
+    assert.equal(await page.locator("#synth-pan").inputValue(), "0");
+    await range("#synth-pan", 100);
     assert.equal(await page.locator("#synth-filter").inputValue(), "950");
     assert.equal(await page.locator("#synth-volume").inputValue(), "50");
     assert.equal(
@@ -156,6 +168,7 @@ const fs = require("node:fs");
     await range("#synth-filter", 3000);
     await range("#synth-volume", 44);
     await page.locator('[data-layer="0"]').click();
+    await range("#synth-pan", -100);
     assert.equal(await page.locator("#synth-filter").inputValue(), "1000");
     assert.equal(await page.locator("#synth-volume").inputValue(), "17");
     assert.equal(

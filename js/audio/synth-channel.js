@@ -6,7 +6,7 @@ export const DEFAULT_LAYERS = [
     filter: 2400,
     echo: 24,
     room: 18,
-    pan: -100,
+    pan: 0,
     volume: 65,
   },
   {
@@ -15,7 +15,7 @@ export const DEFAULT_LAYERS = [
     filter: 950,
     echo: 16,
     room: 12,
-    pan: 100,
+    pan: 0,
     volume: 50,
   },
 ];

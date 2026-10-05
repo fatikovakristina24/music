@@ -1,11 +1,11 @@
-import { AudioEngine, NOTES } from "./audio/engine.js?v=20261005-judas1";
-import { NoteLoop, LOOP_LIMIT_SECONDS } from "./loop.js?v=20261005-judas1";
+import { AudioEngine, NOTES } from "./audio/engine.js?v=20261005-center1";
+import { NoteLoop, LOOP_LIMIT_SECONDS } from "./loop.js?v=20261005-center1";
 import {
   VoiceRecorder,
   VOICE_LIMIT_SECONDS,
-} from "./voice.js?v=20261005-judas1";
-import { SoundVisuals } from "./visuals.js?v=20261005-judas1";
-import { MELODIES, MelodyPlayer } from "./melodies.js?v=20261005-judas1";
+} from "./voice.js?v=20261005-center1";
+import { SoundVisuals } from "./visuals.js?v=20261005-center1";
+import { MELODIES, MelodyPlayer } from "./melodies.js?v=20261005-center1";
 
 const $ = (selector) => document.querySelector(selector);
 const compactLayout = matchMedia("(max-width: 1100px)");
@@ -56,7 +56,7 @@ const synthParameters = [
     min: -100,
     max: 100,
     step: 1,
-    value: -100,
+    value: 0,
     format: (v) =>
       v === 0 ? "Центр" : `${Math.abs(v)} % ${v < 0 ? "L" : "R"}`,
   },
