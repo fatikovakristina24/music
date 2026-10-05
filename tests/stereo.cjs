@@ -22,7 +22,7 @@ const fs = require("node:fs");
     await page.goto(process.env.CONTOUR_URL || "http://localhost:4173");
     const report = await page.evaluate(async () => {
       const { AudioEngine } = await import(
-        "./js/audio/engine.js?v=20261005-stereo1"
+        "./js/audio/engine.js?v=20261005-stereo2"
       );
       const engine = new AudioEngine();
       engine.synthSettings.release = 0.1;

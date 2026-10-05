@@ -1,10 +1,10 @@
-import { AudioEngine, NOTES } from "./audio/engine.js?v=20261005-stereo1";
-import { NoteLoop, LOOP_LIMIT_SECONDS } from "./loop.js?v=20261005-stereo1";
+import { AudioEngine, NOTES } from "./audio/engine.js?v=20261005-stereo2";
+import { NoteLoop, LOOP_LIMIT_SECONDS } from "./loop.js?v=20261005-stereo2";
 import {
   VoiceRecorder,
   VOICE_LIMIT_SECONDS,
-} from "./voice.js?v=20261005-stereo1";
-import { SoundVisuals } from "./visuals.js?v=20261005-stereo1";
+} from "./voice.js?v=20261005-stereo2";
+import { SoundVisuals } from "./visuals.js?v=20261005-stereo2";
 
 const $ = (selector) => document.querySelector(selector);
 const compactLayout = matchMedia("(max-width: 1100px)");

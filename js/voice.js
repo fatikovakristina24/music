@@ -42,7 +42,7 @@ export class VoiceRecorder extends EventTarget {
     try {
       if (!navigator.mediaDevices?.getUserMedia)
         throw new Error(
-          "Микрофон доступен через localhost или HTTPS. Запусти сайт по инструкции в README.",
+          "Микрофон доступен через localhost или HTTPS. Открой сайт через локальный сервер или по опубликованной ссылке.",
         );
       const context = await this.engine.worklets();
       if (generation !== this.generation) return;

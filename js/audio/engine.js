@@ -81,7 +81,7 @@ export class AudioEngine {
     const context = await this.ready();
     if (!context.audioWorklet)
       throw new Error(
-        "Для записи голоса открой сайт через localhost или HTTPS. Инструкция запуска есть в README.",
+        "Для записи голоса открой сайт через localhost или HTTPS.",
       );
     this.workletPromise ??= context.audioWorklet.addModule(
       new URL("./worklets.js", import.meta.url),
