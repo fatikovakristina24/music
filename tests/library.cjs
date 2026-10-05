@@ -24,7 +24,7 @@ const assert = require("node:assert/strict");
     });
     await page.goto(process.env.CONTOUR_URL || "http://localhost:4173");
     const themes = await page.evaluate(async () => {
-      const { MELODIES } = await import("./js/melodies.js?v=20261005-center1");
+      const { MELODIES } = await import("./js/melodies.js?v=20261005-center2");
       return MELODIES.map((m) => ({
         id: m.id,
         title: m.title,
@@ -41,9 +41,9 @@ const assert = require("node:assert/strict");
         ),
       }));
     });
-    assert.equal(themes.length, 21);
-    assert.equal(new Set(themes.map((t) => t.title)).size, 21);
-    assert.equal(themes[0].title, "Judas");
+    assert.equal(themes.length, 20);
+    assert.equal(new Set(themes.map((t) => t.title)).size, 20);
+    assert.equal(themes[0].title, "Ода к радости");
     assert(themes.every((t) => t.valid && t.notes >= 16 && t.duration > 3));
     await page.click("#loop-record");
     await page.keyboard.down("KeyA");
@@ -109,7 +109,7 @@ const assert = require("node:assert/strict");
     }
     assert.deepEqual(errors, []);
     console.log(
-      "PASS: 21 themes including Judas, exact pitches, selection, stop, natural completion, preserved recording, mode cleanup, dropdown bounds and Escape.",
+      "PASS: 20 themes, exact pitches, selection, stop, natural completion, preserved recording, mode cleanup, dropdown bounds and Escape.",
     );
   } finally {
     await browser.close();
