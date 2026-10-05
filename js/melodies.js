@@ -150,6 +150,10 @@ export const MELODIES = themes.map(([title, author, bpm, score], id) => {
       if (pitchClass === 0 && midi >= 72) index = 7;
       notes.push({
         index,
+        label:
+          { C: "До", D: "Ре", E: "Ми", F: "Фа", G: "Соль", A: "Ля", B: "Си" }[
+            letter
+          ] + (accidental === "#" ? "♯" : accidental === "b" ? "♭" : ""),
         frequency: 440 * 2 ** ((midi - 69) / 12),
         time,
         duration: duration * 0.88,
@@ -193,14 +197,14 @@ export class MelodyPlayer extends EventTarget {
       this.started + this.selected.notes[this.next].time < horizon
     ) {
       const note = this.selected.notes[this.next++];
-      this.voices.add(
-        this.engine.noteOn(
-          note.index,
-          this.started + note.time,
-          note.duration,
-          note.frequency,
-        ),
+      const voice = this.engine.noteOn(
+        note.index,
+        this.started + note.time,
+        note.duration,
+        note.frequency,
       );
+      voice.label = note.label;
+      this.voices.add(voice);
     }
     for (const voice of this.voices)
       if (voice.end <= now) this.voices.delete(voice);

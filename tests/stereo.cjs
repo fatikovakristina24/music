@@ -29,7 +29,7 @@ const fs = require("node:fs");
     await page.goto(process.env.CONTOUR_URL || "http://localhost:4173");
     const report = await page.evaluate(async () => {
       const { AudioEngine } = await import(
-        "./js/audio/engine.js?v=20261005-picker1"
+        "./js/audio/engine.js?v=20261005-labels1"
       );
       const engine = new AudioEngine();
       const initialPan = engine.layers.map((layer) => layer.pan);

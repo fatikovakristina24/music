@@ -11,12 +11,18 @@ const assert = require("node:assert/strict");
     page.on("pageerror", (e) => errors.push(e.message));
     await page.addInitScript(() => {
       window.__pitches = [];
+      window.__events = [];
       const create = AudioContext.prototype.createOscillator;
       AudioContext.prototype.createOscillator = function () {
+        window.__audioContext = this;
         const node = create.call(this),
           start = node.start.bind(node);
         node.start = (...args) => {
           window.__pitches.push(node.frequency.value);
+          window.__events.push({
+            frequency: node.frequency.value,
+            when: args[0],
+          });
           return start(...args);
         };
         return node;
@@ -24,7 +30,7 @@ const assert = require("node:assert/strict");
     });
     await page.goto(process.env.CONTOUR_URL || "http://localhost:4173");
     const themes = await page.evaluate(async () => {
-      const { MELODIES } = await import("./js/melodies.js?v=20261005-picker1");
+      const { MELODIES } = await import("./js/melodies.js?v=20261005-labels1");
       return MELODIES.map((m) => ({
         id: m.id,
         title: m.title,
@@ -72,6 +78,47 @@ const assert = require("node:assert/strict");
     }
     await page.click("#melody-stop");
     assert.equal(await page.locator("#melody-stop").isDisabled(), true);
+    await page.evaluate(() => {
+      window.__events = [];
+    });
+    await page.click("#melody-library summary");
+    await page.click('[data-melody="1"]');
+    await page.waitForFunction(() => window.__events.length >= 2);
+    const sync = await page.evaluate(async () => {
+      const { MELODIES } = await import("./js/melodies.js?v=20261005-labels1");
+      const melody = MELODIES[1],
+        started = window.__events[0].when;
+      const errors = [];
+      let checked = 0;
+      await new Promise((resolve) => {
+        const frame = () => {
+          const elapsed = window.__audioContext.currentTime - started;
+          const note = melody.notes.find(
+            (n) =>
+              elapsed >= n.time + 0.03 && elapsed < n.time + n.duration - 0.03,
+          );
+          if (note) {
+            checked++;
+            const status = document.querySelector("#synth-status").textContent;
+            const pad =
+              document.querySelectorAll(".pad .note")[note.index].textContent;
+            if (status !== note.label || pad !== note.label)
+              errors.push({ expected: note.label, status, pad });
+          }
+          if (elapsed >= 2) resolve();
+          else requestAnimationFrame(frame);
+        };
+        requestAnimationFrame(frame);
+      });
+      return { checked, errors };
+    });
+    assert(sync.checked > 20);
+    assert.deepEqual(
+      sync.errors,
+      [],
+      "Current note labels follow the audio clock, including sharps and release tails",
+    );
+    await page.click("#melody-stop");
     const shortest = themes.reduce((a, b) => (a.duration < b.duration ? a : b));
     await page.click("#melody-library summary");
     await page.click(`[data-melody="${shortest.id}"]`);

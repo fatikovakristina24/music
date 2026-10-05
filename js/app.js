@@ -1,11 +1,11 @@
-import { AudioEngine, NOTES } from "./audio/engine.js?v=20261005-picker1";
-import { NoteLoop, LOOP_LIMIT_SECONDS } from "./loop.js?v=20261005-picker1";
+import { AudioEngine, NOTES } from "./audio/engine.js?v=20261005-labels1";
+import { NoteLoop, LOOP_LIMIT_SECONDS } from "./loop.js?v=20261005-labels1";
 import {
   VoiceRecorder,
   VOICE_LIMIT_SECONDS,
-} from "./voice.js?v=20261005-picker1";
-import { SoundVisuals } from "./visuals.js?v=20261005-picker1";
-import { MELODIES, MelodyPlayer } from "./melodies.js?v=20261005-picker1";
+} from "./voice.js?v=20261005-labels1";
+import { SoundVisuals } from "./visuals.js?v=20261005-labels1";
+import { MELODIES, MelodyPlayer } from "./melodies.js?v=20261005-labels1";
 
 const $ = (selector) => document.querySelector(selector);
 const compactLayout = matchMedia("(max-width: 1100px)");
@@ -184,7 +184,7 @@ function selectLayer(index) {
   }
   $("#synth-sliders").setAttribute(
     "aria-label",
-    `Настройки голоса ${index === 0 ? "A" : "B"}`,
+    `Настройки мелодии ${index === 0 ? "A" : "B"}`,
   );
 }
 document
@@ -203,7 +203,7 @@ document.querySelectorAll("[data-layer-toggle]").forEach((button) => {
     button.setAttribute("aria-pressed", String(enabled));
     button.setAttribute(
       "aria-label",
-      `Голос ${index === 0 ? "A" : "B"} ${enabled ? "включён" : "выключен"}`,
+      `Мелодия ${index === 0 ? "A" : "B"} ${enabled ? "включена" : "выключена"}`,
     );
   });
 });
@@ -669,6 +669,7 @@ try {
       const sounding = [...engine.voices].filter(
         (v) => v.start <= now && v.end > now,
       );
+      const currentNotes = sounding.filter((v) => v.gateEnd > now);
       for (let index = 0; index < pads.length; index++) {
         const pressed =
           [...held.values()].some((v) => v.index === index) ||
@@ -680,19 +681,26 @@ try {
             (releases[index] > now || sounding.some((v) => v.index === index)),
         );
         pads[index].setAttribute("aria-pressed", String(pressed));
+        const current = currentNotes.find((v) => v.index === index);
+        pads[index].querySelector(".note").textContent =
+          current?.label || NOTES[index].label;
       }
       const active = sounding.length > 0;
       $("#synth-stage").classList.toggle("sounding", active);
       $("#synth-caption").textContent = active
-        ? sounding.length > 1
-          ? "Сейчас звучит аккорд"
-          : compactLayout.matches
-            ? `Сейчас звучит ${NOTES[sounding[0].index].label}`
-            : "Звучит твоя первая нота"
+        ? currentNotes.length === 0
+          ? "Звук затухает"
+          : currentNotes.length > 1
+            ? "Сейчас звучит аккорд"
+            : `Сейчас звучит ${currentNotes[0].label || NOTES[currentNotes[0].index].label}`
         : "Твой звук начинается здесь";
-      const labels = [...new Set(sounding.map((v) => NOTES[v.index].label))];
+      const labels = [
+        ...new Set(currentNotes.map((v) => v.label || NOTES[v.index].label)),
+      ];
       $("#synth-status").textContent = active
-        ? labels.join(" + ")
+        ? labels.length
+          ? labels.join(" + ")
+          : "Затухание"
         : compactLayout.matches
           ? "Коснись любой ноты ниже"
           : "Нажми любую ноту внизу ↓";
