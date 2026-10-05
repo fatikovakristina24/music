@@ -10,8 +10,8 @@
     />
     <title>КОНТУР — звук становится формой</title>
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="styles.css?v=20261005-stereo2" />
-    <script type="module" src="js/app.js?v=20261005-stereo2"></script>
+    <link rel="stylesheet" href="styles.css?v=20261005-toggle1" />
+    <script type="module" src="js/app.js?v=20261005-toggle1"></script>
   </head>
   <body>
     <main class="instrument" aria-label="Синтезатор КОНТУР">
@@ -53,14 +53,33 @@
           <aside class="controls synth-controls" aria-label="Настройки звука">
             <h2>Два голоса</h2>
             <p class="layer-description">
-              Оба звучат вместе. Выбери голос,<br />чтобы изменить его
-              настройки.
+              Включи A, B или оба. Нажми имя,<br />чтобы изменить настройки.
             </p>
-            <div class="layer-switch" aria-label="Голос для настройки">
-              <button data-layer="0" class="selected" aria-pressed="true">
-                Голос A
-              </button>
-              <button data-layer="1" aria-pressed="false">Голос B</button>
+            <div class="layer-switch" aria-label="Голоса и их настройки">
+              <div class="layer-option">
+                <button data-layer="0" class="selected" aria-pressed="true">
+                  Голос A
+                </button>
+                <button
+                  class="layer-toggle"
+                  data-layer-toggle="0"
+                  aria-label="Голос A включён"
+                  aria-pressed="true"
+                >
+                  Вкл
+                </button>
+              </div>
+              <div class="layer-option">
+                <button data-layer="1" aria-pressed="false">Голос B</button>
+                <button
+                  class="layer-toggle"
+                  data-layer-toggle="1"
+                  aria-label="Голос B включён"
+                  aria-pressed="true"
+                >
+                  Вкл
+                </button>
+              </div>
             </div>
             <div class="presets" aria-label="Тембр">
               <button data-preset="soft" class="selected" aria-pressed="true">

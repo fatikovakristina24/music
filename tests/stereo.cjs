@@ -12,6 +12,13 @@ const fs = require("node:fs");
     page.on("pageerror", (error) => errors.push(error.message));
     await page.addInitScript(() => {
       window.__oscillators = [];
+      window.__analysers = [];
+      const analyse = AudioContext.prototype.createAnalyser;
+      AudioContext.prototype.createAnalyser = function () {
+        const node = analyse.call(this);
+        window.__analysers.push(node);
+        return node;
+      };
       const create = AudioContext.prototype.createOscillator;
       AudioContext.prototype.createOscillator = function () {
         const oscillator = create.call(this);
@@ -22,7 +29,7 @@ const fs = require("node:fs");
     await page.goto(process.env.CONTOUR_URL || "http://localhost:4173");
     const report = await page.evaluate(async () => {
       const { AudioEngine } = await import(
-        "./js/audio/engine.js?v=20261005-stereo2"
+        "./js/audio/engine.js?v=20261005-toggle1"
       );
       const engine = new AudioEngine();
       engine.synthSettings.release = 0.1;
@@ -51,6 +58,13 @@ const fs = require("node:fs");
         return count / 0.12;
       };
       const both = await render();
+      engine.layers[0].enabled = false;
+      const disabledA = await render();
+      engine.layers[1].enabled = false;
+      const disabledBoth = await render();
+      engine.layers[0].enabled = true;
+      const disabledB = await render();
+      engine.layers[1].enabled = true;
       engine.layers[1].volume = 0;
       const onlyA = await render();
       engine.layers[0].volume = 0;
@@ -74,6 +88,9 @@ const fs = require("node:fs");
       const muted = await render();
       return {
         both: [rms(both, 0), rms(both, 1)],
+        disabledA: [rms(disabledA, 0), rms(disabledA, 1)],
+        disabledB: [rms(disabledB, 0), rms(disabledB, 1)],
+        disabledBoth: [rms(disabledBoth, 0), rms(disabledBoth, 1)],
         onlyA: [rms(onlyA, 0), rms(onlyA, 1)],
         onlyB: [rms(onlyB, 0), rms(onlyB, 1)],
         frequencies: [hz(both, 0), hz(both, 1)],
@@ -118,6 +135,9 @@ const fs = require("node:fs");
       "B reverb stays in B's channel",
     );
     assert.deepEqual(report.mute, [0, 0]);
+    assert.ok(report.disabledA[0] < 1e-8 && report.disabledA[1] > 0.005);
+    assert.ok(report.disabledB[1] < 1e-8 && report.disabledB[0] > 0.005);
+    assert.deepEqual(report.disabledBoth, [0, 0]);
     const range = async (id, value) =>
       page.locator(id).evaluate((input, value) => {
         input.value = value;
@@ -152,6 +172,40 @@ const fs = require("node:fs");
       4,
       "Two voices per note in live playback",
     );
+    const outputLevel = () =>
+      page.evaluate(() => {
+        const data = new Float32Array(2048);
+        window.__analysers[0].getFloatTimeDomainData(data);
+        return Math.sqrt(
+          data.reduce((sum, sample) => sum + sample * sample, 0) / data.length,
+        );
+      });
+    await page.locator('[data-layer-toggle="0"]').click();
+    await page.locator('[data-layer-toggle="1"]').click();
+    await page.waitForTimeout(500);
+    assert.ok(
+      (await outputLevel()) < 0.00001,
+      "Both switches mute live audio, including effect tails",
+    );
+    await page.locator('[data-layer="1"]').click();
+    assert.equal(
+      await page
+        .locator('[data-layer-toggle="1"]')
+        .getAttribute("aria-pressed"),
+      "false",
+      "Selecting settings does not enable a voice",
+    );
+    await page.locator('[data-layer-toggle="0"]').click();
+    await page.waitForTimeout(250);
+    assert.ok(
+      (await outputLevel()) > 0.001,
+      "A can resume while B is disabled",
+    );
+    assert.equal(
+      await page.locator('[data-layer-toggle="0"]').textContent(),
+      "Вкл",
+    );
+    await page.locator('[data-layer-toggle="1"]').click();
     await page.keyboard.up("KeyA");
     await page.keyboard.up("KeyD");
     await page.locator("#loop-record").click();

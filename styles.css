@@ -243,6 +243,12 @@ p {
   gap: 4px;
   margin-top: 12px;
 }
+.layer-option {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  gap: 4px;
+}
 .layer-switch button {
   flex: 1;
   height: 40px;
@@ -251,6 +257,14 @@ p {
   color: var(--muted);
   font-size: 14px;
   font-weight: 500;
+}
+.layer-switch .layer-toggle {
+  flex: 0 0 44px;
+  font-size: 12px;
+}
+.layer-switch .layer-toggle[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--paper);
 }
 .layer-switch button.selected {
   background: var(--accent);

@@ -1,7 +1,23 @@
 // Каждый голос имеет собственную цепочку и выход в стереополе.
 export const DEFAULT_LAYERS = [
-  { preset: "soft", filter: 2400, echo: 24, room: 18, pan: -100, volume: 65 },
-  { preset: "bass", filter: 950, echo: 16, room: 12, pan: 100, volume: 50 },
+  {
+    enabled: true,
+    preset: "soft",
+    filter: 2400,
+    echo: 24,
+    room: 18,
+    pan: -100,
+    volume: 65,
+  },
+  {
+    enabled: true,
+    preset: "bass",
+    filter: 950,
+    echo: 16,
+    room: 12,
+    pan: 100,
+    volume: 50,
+  },
 ];
 
 export const PRESETS = {
@@ -57,10 +73,12 @@ export function createSynthChannel(context, settings, destination, index) {
   delay.connect(echo).connect(sum);
   sum.connect(mix);
   sum.connect(room).connect(roomWet).connect(mix);
-  mix.connect(volume).connect(pan).connect(destination);
+  const gate = context.createGain();
+  mix.connect(volume).connect(pan).connect(gate).connect(destination);
 
   const update = (name, value, initial = false) => {
     const parameters = {
+      enabled: [gate.gain, value === false ? 0 : 1],
       filter: [filter.frequency, value],
       echo: [echo.gain, value / 100],
       room: [roomWet.gain, value / 100],
@@ -72,12 +90,14 @@ export function createSynthChannel(context, settings, destination, index) {
     if (initial) parameter[0].value = parameter[1];
     else parameter[0].setTargetAtTime(parameter[1], context.currentTime, 0.02);
   };
+  update("enabled", settings.enabled, true);
   for (const [name, value] of Object.entries(settings))
     update(name, value, true);
   return { input, update };
 }
 
 export function synthEffectTail(settings) {
+  if (settings.enabled === false) return 0;
   // Реверберация идёт после эха, поэтому их хвосты складываются.
   return (settings.echo > 0 ? 3.28 : 0) + (settings.room > 0 ? 1.4 : 0);
 }

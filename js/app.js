@@ -1,10 +1,10 @@
-import { AudioEngine, NOTES } from "./audio/engine.js?v=20261005-stereo2";
-import { NoteLoop, LOOP_LIMIT_SECONDS } from "./loop.js?v=20261005-stereo2";
+import { AudioEngine, NOTES } from "./audio/engine.js?v=20261005-toggle1";
+import { NoteLoop, LOOP_LIMIT_SECONDS } from "./loop.js?v=20261005-toggle1";
 import {
   VoiceRecorder,
   VOICE_LIMIT_SECONDS,
-} from "./voice.js?v=20261005-stereo2";
-import { SoundVisuals } from "./visuals.js?v=20261005-stereo2";
+} from "./voice.js?v=20261005-toggle1";
+import { SoundVisuals } from "./visuals.js?v=20261005-toggle1";
 
 const $ = (selector) => document.querySelector(selector);
 const compactLayout = matchMedia("(max-width: 1100px)");
@@ -192,6 +192,19 @@ document
       selectLayer(Number(button.dataset.layer)),
     ),
   );
+document.querySelectorAll("[data-layer-toggle]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const index = Number(button.dataset.layerToggle);
+    const enabled = engine.layers[index].enabled === false;
+    engine.updateLayer(index, "enabled", enabled);
+    button.textContent = enabled ? "Вкл" : "Выкл";
+    button.setAttribute("aria-pressed", String(enabled));
+    button.setAttribute(
+      "aria-label",
+      `Голос ${index === 0 ? "A" : "B"} ${enabled ? "включён" : "выключен"}`,
+    );
+  });
+});
 const effectSliders = new Map(
   voiceParameters.map((config) => [
     config.name,
