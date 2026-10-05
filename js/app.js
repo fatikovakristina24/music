@@ -1,10 +1,11 @@
-import { AudioEngine, NOTES } from "./audio/engine.js?v=20261005-toggle1";
-import { NoteLoop, LOOP_LIMIT_SECONDS } from "./loop.js?v=20261005-toggle1";
+import { AudioEngine, NOTES } from "./audio/engine.js?v=20261005-library1";
+import { NoteLoop, LOOP_LIMIT_SECONDS } from "./loop.js?v=20261005-library1";
 import {
   VoiceRecorder,
   VOICE_LIMIT_SECONDS,
-} from "./voice.js?v=20261005-toggle1";
-import { SoundVisuals } from "./visuals.js?v=20261005-toggle1";
+} from "./voice.js?v=20261005-library1";
+import { SoundVisuals } from "./visuals.js?v=20261005-library1";
+import { MELODIES, MelodyPlayer } from "./melodies.js?v=20261005-library1";
 
 const $ = (selector) => document.querySelector(selector);
 const compactLayout = matchMedia("(max-width: 1100px)");
@@ -18,6 +19,7 @@ fitStudio();
 window.addEventListener("resize", fitStudio);
 const engine = new AudioEngine();
 const loop = new NoteLoop(engine);
+const melodyPlayer = new MelodyPlayer(engine);
 const voice = new VoiceRecorder(engine);
 const held = new Map();
 let mode = "play",
@@ -343,10 +345,12 @@ document.addEventListener("visibilitychange", () => {
     releaseHeld();
     loop.finishRecording();
     loop.stopPlayback();
+    melodyPlayer.stop();
     voice.leave();
   }
 });
 window.addEventListener("pagehide", () => {
+  melodyPlayer.stop();
   releaseHeld();
   loop.clear();
   voice.leave();
@@ -359,6 +363,8 @@ function setMode(value) {
   releaseHeld();
   loop.finishRecording();
   loop.stopPlayback();
+  melodyPlayer.stop();
+  $("#melody-library").open = false;
   engine.stopAll();
   voice.leave();
   mode = value;
@@ -389,9 +395,60 @@ document.querySelectorAll("[data-preset]").forEach((button) =>
   }),
 );
 
+for (const melody of MELODIES) {
+  const button = document.createElement("button");
+  button.className = "melody-item";
+  button.dataset.melody = melody.id;
+  button.setAttribute("aria-pressed", "false");
+  const title = document.createElement("span");
+  title.textContent = melody.title;
+  const author = document.createElement("small");
+  author.textContent = melody.author;
+  button.append(title, author);
+  button.addEventListener("click", () => {
+    $("#melody-library").open = false;
+    $("#melody-library summary").focus();
+    loop.finishRecording();
+    loop.stopPlayback();
+    safe(() => melodyPlayer.play(melody));
+  });
+  $("#melody-list").append(button);
+}
+melodyPlayer.addEventListener("change", () => {
+  $("#melody-stop").disabled = !melodyPlayer.playing;
+  const text = melodyPlayer.playing
+    ? `Играет: ${melodyPlayer.selected.title}`
+    : "20 мелодий на выбор";
+  $("#melody-status").textContent = text;
+  $("#melody-status").title = text;
+  document
+    .querySelectorAll("[data-melody]")
+    .forEach((button) =>
+      button.setAttribute(
+        "aria-pressed",
+        String(
+          melodyPlayer.playing &&
+            Number(button.dataset.melody) === melodyPlayer.selected.id,
+        ),
+      ),
+    );
+});
+$("#melody-stop").addEventListener("click", () => melodyPlayer.stop());
+document.addEventListener("pointerdown", (event) => {
+  if (!$("#melody-library").contains(event.target))
+    $("#melody-library").open = false;
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && $("#melody-library").open) {
+    $("#melody-library").open = false;
+    $("#melody-library summary").focus();
+  }
+});
+
 $("#loop-record").addEventListener("click", () =>
   safe(async () => {
     await engine.ready();
+    melodyPlayer.stop();
     if (loop.state === "recording") loop.finishRecording();
     else loop.startRecording();
   }),
@@ -399,6 +456,7 @@ $("#loop-record").addEventListener("click", () =>
 $("#loop-play").addEventListener("click", () =>
   safe(async () => {
     await engine.ready();
+    melodyPlayer.stop();
     if (loop.state === "playing") loop.stopPlayback();
     else loop.startPlayback();
   }),

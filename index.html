@@ -10,8 +10,8 @@
     />
     <title>КОНТУР — звук становится формой</title>
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="styles.css?v=20261005-toggle1" />
-    <script type="module" src="js/app.js?v=20261005-toggle1"></script>
+    <link rel="stylesheet" href="styles.css?v=20261005-library1" />
+    <script type="module" src="js/app.js?v=20261005-library1"></script>
   </head>
   <body>
     <main class="instrument" aria-label="Синтезатор КОНТУР">
@@ -103,6 +103,21 @@
               пальцами.</span
             >
           </p>
+        </div>
+        <div class="melody-toolbar">
+          <details id="melody-library" class="melody-library">
+            <summary class="button">
+              Знакомые мелодии <span aria-hidden="true">⌄</span>
+            </summary>
+            <div class="melody-menu">
+              <p class="melody-menu-hint">
+                Выбери тему — синтезатор сыграет её
+              </p>
+              <div id="melody-list"></div>
+            </div>
+          </details>
+          <button id="melody-stop" class="button" disabled>■ Стоп</button>
+          <span id="melody-status" role="status">20 мелодий на выбор</span>
         </div>
         <div class="pads" id="pads" aria-label="Ноты"></div>
         <div class="loop-panel">

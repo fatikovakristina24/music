@@ -372,6 +372,109 @@ p {
   color: var(--muted);
   font-size: 16px;
 }
+.melody-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+.melody-library {
+  position: relative;
+  flex-shrink: 0;
+}
+.melody-library summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  list-style: none;
+  cursor: pointer;
+}
+.melody-library summary::-webkit-details-marker {
+  display: none;
+}
+.melody-library[open] summary {
+  background: var(--accent);
+  color: var(--ink);
+}
+.melody-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 360px;
+  max-height: min(400px, 60vh);
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 12px;
+  z-index: 30;
+  box-shadow: 0 12px 32px #0008;
+}
+.melody-menu-hint {
+  padding: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.melody-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  min-height: 58px;
+  padding: 10px 12px;
+  text-align: left;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 14px;
+  gap: 4px;
+}
+.melody-item small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.melody-item:hover,
+.melody-item:focus-visible {
+  background: var(--line);
+}
+.melody-item[aria-pressed="true"] {
+  background: var(--tint);
+}
+#melody-status {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: 14px;
+}
+@media (max-width: 600px) {
+  .melody-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .melody-library {
+    flex: 1;
+    min-width: 0;
+  }
+  .melody-library summary {
+    gap: 8px;
+    padding-inline: 12px;
+    font-size: 14px;
+  }
+  .melody-menu {
+    width: min(374px, calc(100vw - 40px));
+  }
+  #melody-stop {
+    width: 80px;
+  }
+  #melody-status {
+    flex-basis: 100%;
+    font-size: 12px;
+    line-height: 18px;
+  }
+}
 .pads {
   display: grid;
   grid-template-columns: repeat(8, minmax(0, 1fr));
@@ -797,6 +900,10 @@ fieldset {
     order: 1;
     margin: 0;
   }
+  .melody-toolbar {
+    order: 1;
+    margin-top: -4px;
+  }
   .section-copy h2 {
     font-size: 18px;
     line-height: 31px;
@@ -1047,6 +1154,9 @@ fieldset {
   }
 }
 @media (min-width: 601px) and (max-width: 1100px) {
+  .melody-toolbar {
+    margin-top: -12px;
+  }
   .instrument {
     padding: 24px;
   }

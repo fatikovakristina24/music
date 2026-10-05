@@ -122,7 +122,12 @@ export class AudioEngine {
       );
   }
 
-  noteOn(index, when = this.context.currentTime, gateDuration = null) {
+  noteOn(
+    index,
+    when = this.context.currentTime,
+    gateDuration = null,
+    frequency = NOTES[index].frequency,
+  ) {
     const ctx = this.context;
     if (this.voices.size >= this.voiceLimit) [...this.voices][0].kill();
     const settings = { ...this.synthSettings };
@@ -136,7 +141,7 @@ export class AudioEngine {
       filter.frequency.value = preset.cutoff;
       const oscillator = ctx.createOscillator();
       oscillator.type = preset.type;
-      oscillator.frequency.value = NOTES[index].frequency * preset.octave;
+      oscillator.frequency.value = frequency * preset.octave;
       oscillator
         .connect(filter)
         .connect(gain)
