@@ -40,7 +40,7 @@
 }
 .studio-transport {
   display: grid;
-  grid-template-columns: 160px 112px 240px;
+  grid-template-columns: 160px 240px;
   gap: 12px;
   margin-top: 10px;
 }
@@ -62,29 +62,6 @@
 }
 .studio-transport .button {
   height: 44px;
-}
-.tempo-control {
-  height: 44px;
-  border-radius: 24px;
-  background: #2a2b2e;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  font-size: 14px;
-}
-.tempo-control input {
-  color: var(--ink);
-  text-align: right;
-  width: 38px;
-  background: none;
-  border: 0;
-  padding: 0;
-  appearance: textfield;
-  -moz-appearance: textfield;
-}
-.tempo-control input::-webkit-inner-spin-button {
-  appearance: none;
 }
 .studio-steps {
   display: grid;
@@ -492,7 +469,7 @@
   }
   .studio-transport {
     margin: 0;
-    grid-template-columns: 1fr 100px 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;
   }
   #weave-canvas {
@@ -622,18 +599,12 @@
     flex-basis: 100%;
   }
   .studio-transport {
-    grid-template-columns: 1fr 78px 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
   }
   .music-studio .studio-transport .button {
     padding: 0 8px;
     font-size: 12px;
-  }
-  .tempo-control {
-    font-size: 12px;
-  }
-  .tempo-control input {
-    width: 30px;
   }
   .studio-steps {
     grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -353,14 +353,6 @@ $("#step-next").addEventListener("click", () =>
 $("#timbre").addEventListener("change", (e) =>
   engine.updateLayer(0, "preset", e.target.value),
 );
-$("#tempo").addEventListener("change", (e) => {
-  const number = Number(e.target.value);
-  const value = Number.isFinite(number)
-    ? Math.min(180, Math.max(60, Math.round(number)))
-    : 120;
-  e.target.value = value;
-  composition.setTempo(value);
-});
 $("#melody-record").addEventListener("click", () =>
   safe(async () => {
     releaseHeld();
@@ -493,7 +485,6 @@ function updateMusic() {
         : "Послушать";
   $("#melody-play").disabled = !availability[0] || recording;
   $("#melody-clear").disabled = !availability[0] || recording;
-  $("#tempo").disabled = recording;
   $("#track-play").textContent =
     composition.kind === "track"
       ? "Пауза"

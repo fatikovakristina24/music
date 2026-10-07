@@ -211,9 +211,7 @@ fs.writeFileSync(microphone, fixture);
       developmentDrums: true,
       finalDrums: false,
     });
-    // Смена темпа и отсутствие горизонтального скролла во всех шагах.
-    await page.locator("#tempo").fill("140");
-    await page.locator("#tempo").press("Tab");
+    // Отсутствие горизонтального скролла во всех шагах.
     for (const width of [768, 414, 360]) {
       await page.setViewportSize({ width, height: 1000 });
       for (let step = 0; step < 4; step++) {
@@ -280,7 +278,7 @@ fs.writeFileSync(microphone, fixture);
       { timeout: 25000 },
     );
     await page.keyboard.up("a");
-    assert.equal(await page.locator("#tempo").isEnabled(), true);
+    assert.equal(await page.locator("#tempo").count(), 0);
     assert.equal(await page.locator("#melody-play").isEnabled(), true);
     assert.deepEqual(errors, []);
     console.log(
