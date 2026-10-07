@@ -416,13 +416,8 @@ for (const melody of MELODIES) {
 }
 melodyPlayer.addEventListener("change", () => {
   $("#melody-stop").disabled = !melodyPlayer.playing;
-  const text = melodyPlayer.playing
-    ? `Играет: ${melodyPlayer.selected.title}`
-    : `${MELODIES.length} мелодий · выбери и послушай`;
   $("#melody-selected").textContent =
     melodyPlayer.selected?.title || "Выбрать мелодию";
-  $("#melody-status").textContent = text;
-  $("#melody-status").title = text;
   document
     .querySelectorAll("[data-melody]")
     .forEach((button) =>

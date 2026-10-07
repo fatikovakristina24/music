@@ -69,7 +69,7 @@ const assert = require("node:assert/strict");
         null,
       );
       assert(
-        (await page.locator("#melody-status").textContent()).includes(
+        (await page.locator("#melody-selected").textContent()).includes(
           theme.title,
         ),
       );

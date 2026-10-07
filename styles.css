@@ -511,17 +511,6 @@ p {
 .melody-item[aria-pressed="true"] {
   background: var(--tint);
 }
-#melody-status {
-  display: block;
-  width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 18px;
-  padding-left: 2px;
-}
 @media (max-width: 600px) {
   .melody-toolbar {
     width: 100%;
