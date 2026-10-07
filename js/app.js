@@ -471,13 +471,9 @@ function updateLoop() {
   $(".loop-copy .mobile-only").textContent = recording
     ? `0.0 / ${decimals(LOOP_LIMIT_SECONDS)} с`
     : "До 20 секунд";
-  $("#loop-record").textContent = recording
-    ? compactLayout.matches
-      ? "■ Стоп"
-      : "■ Остановить"
-    : "● Записать";
+  $("#loop-record").textContent = recording ? "Остановить" : "Записать";
   $("#loop-record").classList.toggle("active", recording);
-  $("#loop-play").textContent = playing ? "Ⅱ Пауза" : "▶ Повтор";
+  $("#loop-play").textContent = playing ? "Пауза" : "Повтор";
   $("#loop-play").classList.toggle("active", playing);
   $("#loop-play").disabled = !loop.notes.length || recording;
   $("#loop-clear").disabled = loop.state === "empty" || recording;

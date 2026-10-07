@@ -194,7 +194,7 @@ fs.writeFileSync(fixture, wav);
     );
     assert.ok((await rms()) > 0.005, "Loop produces real audio");
     await page.locator("#loop-play").click();
-    assert.equal(await page.locator("#loop-play").textContent(), "▶ Повтор");
+    assert.equal(await page.locator("#loop-play").textContent(), "Повтор");
     await page.locator("#loop-clear").click();
     assert.equal(await page.locator("#loop-play").isDisabled(), true);
 
@@ -203,7 +203,7 @@ fs.writeFileSync(fixture, wav);
     await page.waitForTimeout(9000);
     assert.equal(
       await page.locator("#loop-record").textContent(),
-      "■ Остановить",
+      "Остановить",
     );
     await page.keyboard.down("KeyA");
     await page.waitForTimeout(120);
