@@ -169,7 +169,7 @@ const pads = NOTES.map((note, index) => {
     (_, x) =>
       `${x ? "L" : "M"}${x},${(7 + Math.sin((x / 60) * Math.PI * (2 + index * 0.55)) * Math.sin((x / 60) * Math.PI) * 2.5).toFixed(2)}`,
   ).join(" ");
-  button.innerHTML = `<span class="note">${note.label}${index === 7 ? " ↑" : ""}</span><span class="key">${note.key}</span><svg viewBox="0 0 60 14" aria-hidden="true"><path d="${wave}"/></svg>`;
+  button.innerHTML = `<span class="note">${note.label}</span><span class="key">${note.key}</span><svg viewBox="0 0 60 14" aria-hidden="true"><path d="${wave}"/></svg>`;
   button.setAttribute(
     "aria-label",
     `${note.label}${index === 7 ? ", выше на октаву" : ""} — клавиша ${note.key}`,
