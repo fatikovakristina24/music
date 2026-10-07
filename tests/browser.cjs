@@ -247,7 +247,7 @@ fs.writeFileSync(fixture, wav);
       await range(`#effect-${name}`, value);
     await page.locator("#voice-play").click();
     await page.waitForTimeout(180);
-    assert.equal(await page.locator("#voice-play").textContent(), "Ⅱ Пауза");
+    assert.equal(await page.locator("#voice-play").textContent(), "Пауза");
     await page.screenshot({ path: path.join(output, "voice-playing.png") });
     await range("#effect-pitch", 7);
     await page.locator("#voice-play").click();

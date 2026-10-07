@@ -515,21 +515,21 @@ function updateVoice() {
   $("#voice-record").disabled = busy;
   $("#voice-record").textContent = recording
     ? compactLayout.matches
-      ? "■ Остановить запись"
-      : "■ Закончить запись"
+      ? "Остановить запись"
+      : "Закончить запись"
     : voice.state === "requesting"
       ? "Разреши микрофон…"
       : compactLayout.matches && hasRecording
-        ? "● Записать заново"
-        : "● Записать голос";
+        ? "Записать заново"
+        : "Записать голос";
   $("#voice-play").disabled = !enabled;
   $("#voice-play").textContent = playing
-    ? "Ⅱ Пауза"
+    ? "Пауза"
     : voice.state === "paused"
-      ? "▶ Продолжить"
+      ? "Продолжить"
       : compactLayout.matches
-        ? "▶ Слушать"
-        : "▶ Послушать";
+        ? "Слушать"
+        : "Послушать";
   $("#voice-reset").disabled = $("#voice-delete").disabled = !enabled;
   $("#voice-effects").disabled = !enabled;
   $("#voice-download").disabled = !enabled || voice.exporting;
