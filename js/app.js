@@ -485,7 +485,7 @@ function updateLoop() {
     !loop.notes.length || recording || loop.exporting;
   $("#loop-download").textContent = loop.exporting
     ? "Сохраняем…"
-    : "Скачать WAV ↓";
+    : "Скачать";
   $("#loop-status").textContent = recording
     ? `Записываем · 0.0 / ${decimals(LOOP_LIMIT_SECONDS)} с`
     : playing
@@ -539,9 +539,7 @@ function updateVoice() {
   $("#voice-download").disabled = !enabled || voice.exporting;
   $("#voice-download").textContent = voice.exporting
     ? "Сохраняем…"
-    : compactLayout.matches
-      ? "Скачать WAV ↓"
-      : "Скачать запись ↓";
+    : "Скачать";
   $("#voice-summary").textContent = recording
     ? "Идёт запись…"
     : voice.state === "processing"
