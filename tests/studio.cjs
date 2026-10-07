@@ -175,7 +175,7 @@ fs.writeFileSync(microphone, fixture);
     const downloadEvent = page.waitForEvent("download");
     await page.locator("#track-download").click();
     const download = await downloadEvent;
-    assert.equal(download.suggestedFilename(), "kontur-track.wav");
+    assert.equal(download.suggestedFilename(), "spletenie-track.wav");
     await download.saveAs(path.join(out, "track.wav"));
     const wav = fs.readFileSync(path.join(out, "track.wav"));
     assert.equal(wav.toString("ascii", 0, 4), "RIFF");

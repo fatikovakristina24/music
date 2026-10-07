@@ -1,10 +1,13 @@
 import { AudioEngine, NOTES } from "./audio/engine.js?v=20261008-weave";
-import { Composition, BASS_OPTIONS } from "./composition.js?v=20261008-weave";
+import {
+  Composition,
+  BASS_OPTIONS,
+} from "./composition.js?v=20261008-spletenie";
 import { WeaveVisuals } from "./weave-visuals.js?v=20261008-weave";
 import {
   VoiceRecorder,
   VOICE_LIMIT_SECONDS,
-} from "./voice.js?v=20261008-weave";
+} from "./voice.js?v=20261008-spletenie";
 import { SoundVisuals } from "./visuals.js?v=20261008-weave";
 
 const $ = (selector) => document.querySelector(selector);

@@ -160,7 +160,7 @@ fs.writeFileSync(fixture, wav);
     const melodyDownloadPromise = page.waitForEvent("download");
     await page.locator("#loop-download").tap();
     const melodyDownload = await melodyDownloadPromise;
-    assert.equal(melodyDownload.suggestedFilename(), "kontur-melody.wav");
+    assert.equal(melodyDownload.suggestedFilename(), "spletenie-melody.wav");
     await melodyDownload.saveAs(path.join(output, "mobile-melody.wav"));
     assert.ok(fs.statSync(path.join(output, "mobile-melody.wav")).size > 1000);
     await page.locator("#help-open").tap();

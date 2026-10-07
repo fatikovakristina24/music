@@ -128,7 +128,7 @@ export class NoteLoop extends EventTarget {
     this.changed();
     try {
       const rendered = await this.engine.exportMelody(notes, duration);
-      downloadWav(rendered, "kontur-melody.wav");
+      downloadWav(rendered, "spletenie-melody.wav");
     } finally {
       this.exporting = false;
       this.changed();

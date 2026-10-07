@@ -333,7 +333,7 @@ export class Composition extends EventTarget {
       for (const event of score.events)
         this.trigger(event, event.beat * this.secondsPerBeat, renderer);
       const buffer = await context.startRendering();
-      downloadWav(buffer, "kontur-track.wav");
+      downloadWav(buffer, "spletenie-track.wav");
     } finally {
       this.exporting = false;
       this.change();

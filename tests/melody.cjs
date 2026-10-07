@@ -119,7 +119,7 @@ fs.mkdirSync(output, { recursive: true });
     const pending = page.waitForEvent("download");
     await page.locator("#loop-download").click();
     const download = await pending;
-    assert.equal(download.suggestedFilename(), "kontur-melody.wav");
+    assert.equal(download.suggestedFilename(), "spletenie-melody.wav");
     const file = path.join(output, "melody.wav");
     await download.saveAs(file);
     const wav = fs.readFileSync(file);

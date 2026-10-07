@@ -222,7 +222,7 @@ export class VoiceRecorder extends EventTarget {
     this.changed();
     try {
       const rendered = await this.engine.exportVoice(this.buffer);
-      downloadWav(rendered, "kontur-voice.wav");
+      downloadWav(rendered, "spletenie-voice.wav");
     } finally {
       this.exporting = false;
       this.changed();
