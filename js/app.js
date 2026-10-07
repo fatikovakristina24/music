@@ -491,7 +491,7 @@ function updateLoop() {
     : playing
       ? `Повторяем · ${decimals(loop.duration)} секунды`
       : loop.notes.length
-        ? `Фраза · ${decimals(loop.duration)} секунды`
+        ? `Мелодия · ${decimals(loop.duration)} секунды`
         : compactLayout.matches
           ? "Сначала сыграй и запиши свою мелодию."
           : "Сначала запиши свою мелодию →";
