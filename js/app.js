@@ -1,74 +1,34 @@
-import { AudioEngine, NOTES } from "./audio/engine.js?v=20261005-labels1";
-import { NoteLoop, LOOP_LIMIT_SECONDS } from "./loop.js?v=20261005-labels1";
+import { AudioEngine, NOTES } from "./audio/engine.js?v=20261008-weave";
+import { Composition, BASS_OPTIONS } from "./composition.js?v=20261008-weave";
+import { WeaveVisuals } from "./weave-visuals.js?v=20261008-weave";
 import {
   VoiceRecorder,
   VOICE_LIMIT_SECONDS,
-} from "./voice.js?v=20261005-labels1";
-import { SoundVisuals } from "./visuals.js?v=20261005-labels1";
-import { MELODIES, MelodyPlayer } from "./melodies.js?v=20261005-labels1";
+} from "./voice.js?v=20261008-weave";
+import { SoundVisuals } from "./visuals.js?v=20261008-weave";
 
 const $ = (selector) => document.querySelector(selector);
 const compactLayout = matchMedia("(max-width: 1100px)");
-// На телефонах и планшетах используется своя компоновка без масштабирования.
-function fitStudio() {
-  $(".instrument").style.zoom = compactLayout.matches
-    ? 1
-    : Math.min(1, document.documentElement.clientWidth / 1440);
-}
-fitStudio();
-window.addEventListener("resize", fitStudio);
-const engine = new AudioEngine();
-const loop = new NoteLoop(engine);
-const melodyPlayer = new MelodyPlayer(engine);
-const voice = new VoiceRecorder(engine);
-const held = new Map();
-let mode = "play",
-  inputGeneration = 0;
-const releases = Array(NOTES.length).fill(0);
 const decimals = (number) => number.toFixed(1);
 const signed = (number) => (number > 0 ? `+${number}` : `${number}`);
-
-let selectedLayer = 0;
-const synthParameters = [
-  {
-    name: "release",
-    label: "Затухание нот",
-    min: 0.1,
-    max: 4,
-    step: 0.1,
-    value: 1.8,
-    format: (v) => `${decimals(v)} s`,
-  },
-  {
-    name: "filter",
-    label: "Фильтр",
-    min: 100,
-    max: 6000,
-    step: 50,
-    value: 2400,
-    format: (v) => `${v} Hz`,
-  },
-  { name: "echo", label: "Эхо", min: 0, max: 60, step: 1, value: 24 },
-  { name: "room", label: "Комната", min: 0, max: 100, step: 1, value: 18 },
-  {
-    name: "pan",
-    label: "Слева / справа",
-    min: -100,
-    max: 100,
-    step: 1,
-    value: 0,
-    format: (v) =>
-      v === 0 ? "Центр" : `${Math.abs(v)} % ${v < 0 ? "L" : "R"}`,
-  },
-  {
-    name: "volume",
-    label: "Громкость",
-    min: 0,
-    max: 100,
-    step: 1,
-    value: 65,
-  },
-];
+const engine = new AudioEngine();
+engine.layers.push({
+  enabled: true,
+  preset: "soft",
+  filter: 18000,
+  echo: 0,
+  room: 12,
+  pan: 0,
+  volume: 65,
+});
+engine.synthSettings.release = 0.35;
+const composition = new Composition(engine);
+const voice = new VoiceRecorder(engine);
+let step = 0,
+  mode = "play",
+  inputGeneration = 0,
+  voiceVisuals;
+const held = new Map();
 const voiceParameters = [
   {
     name: "pitch",
@@ -154,59 +114,6 @@ function slider(container, config, prefix, onChange) {
   container.append(element);
   return { input, display };
 }
-const synthSliders = new Map(
-  synthParameters.map((config) => [
-    config.name,
-    slider($("#synth-sliders"), config, "synth", (name, value) => {
-      if (name === "release") engine.updateSynth(name, value);
-      else engine.updateLayer(selectedLayer, name, value);
-    }),
-  ]),
-);
-function selectLayer(index) {
-  selectedLayer = index;
-  document.querySelectorAll("[data-layer]").forEach((button) => {
-    const selected = Number(button.dataset.layer) === index;
-    button.classList.toggle("selected", selected);
-    button.setAttribute("aria-pressed", String(selected));
-  });
-  document.querySelectorAll("[data-preset]").forEach((button) => {
-    const selected = button.dataset.preset === engine.layers[index].preset;
-    button.classList.toggle("selected", selected);
-    button.setAttribute("aria-pressed", String(selected));
-  });
-  for (const [name, control] of synthSliders) {
-    control.input.value =
-      name === "release"
-        ? engine.synthSettings.release
-        : engine.layers[index][name];
-    control.display();
-  }
-  $("#synth-sliders").setAttribute(
-    "aria-label",
-    `Настройки мелодии ${index === 0 ? "A" : "B"}`,
-  );
-}
-document
-  .querySelectorAll("[data-layer]")
-  .forEach((button) =>
-    button.addEventListener("click", () =>
-      selectLayer(Number(button.dataset.layer)),
-    ),
-  );
-document.querySelectorAll("[data-layer-toggle]").forEach((button) => {
-  button.addEventListener("click", () => {
-    const index = Number(button.dataset.layerToggle);
-    const enabled = engine.layers[index].enabled === false;
-    engine.updateLayer(index, "enabled", enabled);
-    button.textContent = enabled ? "Вкл" : "Выкл";
-    button.setAttribute("aria-pressed", String(enabled));
-    button.setAttribute(
-      "aria-label",
-      `Мелодия ${index === 0 ? "A" : "B"} ${enabled ? "включена" : "выключена"}`,
-    );
-  });
-});
 const effectSliders = new Map(
   voiceParameters.map((config) => [
     config.name,
@@ -215,24 +122,51 @@ const effectSliders = new Map(
     ),
   ]),
 );
+const musicSliders = new Map(
+  [
+    {
+      name: "volume",
+      label: "Громкость",
+      min: 0,
+      max: 100,
+      step: 1,
+      value: 65,
+    },
+    { name: "echo", label: "Эхо", min: 0, max: 60, step: 1, value: 24 },
+    { name: "room", label: "Комната", min: 0, max: 100, step: 1, value: 18 },
+  ].map((config) => [
+    config.name,
+    slider($("#studio-sliders"), config, "music", (name, value) => {
+      if (step === 3) {
+        if (name === "volume") engine.updateSynth(name, value);
+        else engine.updateMix(name, value);
+      } else engine.updateLayer(step, name, value);
+    }),
+  ]),
+);
 
+const colors = [
+  "#22286e",
+  "#323d9e",
+  "#424dbb",
+  "#525ecd",
+  "#6758a8",
+  "#806fbb",
+  "#978bd0",
+  "#a9b2ff",
+];
 const pads = NOTES.map((note, index) => {
   const button = document.createElement("button");
-  button.className = "pad";
+  button.className = "studio-pad";
   button.type = "button";
-  button.innerHTML = `<span class="key">${note.key}</span><span class="note">${note.label}${index === 7 ? '<span class="mobile-only"> ↑</span>' : ""}</span>`;
-  const wave = Array.from({ length: 109 }, (_, x) => {
-    const y =
-      122 +
-      Math.sin((x / 108) * Math.PI * 2 * (1 + index * 0.27)) *
-        4 *
-        Math.sin((Math.PI * x) / 108);
-    return `${x ? "L" : "M"} ${20 + x} ${y.toFixed(2)}`;
-  }).join(" ");
-  button.insertAdjacentHTML(
-    "beforeend",
-    `<svg class="pad-wave" viewBox="0 0 154 144" preserveAspectRatio="none" aria-hidden="true"><path d="${wave}" /></svg>`,
-  );
+  button.style.setProperty("--note-color", colors[index]);
+  button.style.setProperty("--note-ink", index > 5 ? "#0a0a0b" : "#f3f3f0");
+  const wave = Array.from(
+    { length: 61 },
+    (_, x) =>
+      `${x ? "L" : "M"}${x},${(7 + Math.sin((x / 60) * Math.PI * (2 + index * 0.55)) * Math.sin((x / 60) * Math.PI) * 2.5).toFixed(2)}`,
+  ).join(" ");
+  button.innerHTML = `<span class="note">${note.label}${index === 7 ? " ↑" : ""}</span><span class="key">${note.key}</span><svg viewBox="0 0 60 14" aria-hidden="true"><path d="${wave}"/></svg>`;
   button.setAttribute(
     "aria-label",
     `${note.label}${index === 7 ? ", выше на октаву" : ""} — клавиша ${note.key}`,
@@ -241,52 +175,44 @@ const pads = NOTES.map((note, index) => {
   button.addEventListener("pointerdown", (event) => {
     if (event.button !== 0) return;
     event.preventDefault();
-    button.focus({ preventScroll: true });
     button.setPointerCapture(event.pointerId);
     noteOn(`pointer-${event.pointerId}`, index);
   });
-  button.addEventListener("pointerup", (event) =>
-    noteOff(`pointer-${event.pointerId}`),
-  );
-  button.addEventListener("pointercancel", (event) =>
-    noteOff(`pointer-${event.pointerId}`),
-  );
-  button.addEventListener("lostpointercapture", (event) =>
-    noteOff(`pointer-${event.pointerId}`),
-  );
-  button.addEventListener("keydown", (event) => {
-    if (["Space", "Enter"].includes(event.code)) {
-      event.preventDefault();
-      if (!event.repeat) noteOn(`pad-key-${index}`, index);
+  for (const event of ["pointerup", "pointercancel", "lostpointercapture"])
+    button.addEventListener(event, (e) => noteOff(`pointer-${e.pointerId}`));
+  button.addEventListener("keydown", (e) => {
+    if (["Enter", "Space"].includes(e.code)) {
+      e.preventDefault();
+      if (!e.repeat) noteOn(`pad-${index}`, index);
     }
   });
-  button.addEventListener("keyup", (event) => {
-    if (["Space", "Enter"].includes(event.code)) {
-      event.preventDefault();
-      noteOff(`pad-key-${index}`);
+  button.addEventListener("keyup", (e) => {
+    if (["Enter", "Space"].includes(e.code)) {
+      e.preventDefault();
+      noteOff(`pad-${index}`);
     }
   });
-  button.addEventListener("blur", () => noteOff(`pad-key-${index}`));
+  button.addEventListener("blur", () => noteOff(`pad-${index}`));
   $("#pads").append(button);
   return button;
 });
-
 async function noteOn(token, index) {
-  if (mode !== "play" || held.has(token)) return;
+  if (mode !== "play" || step !== 0 || held.has(token)) return;
   const generation = inputGeneration;
-  const note = { index, voice: null, released: false };
+  const note = { index, released: false };
   held.set(token, note);
   try {
     await engine.ready();
     if (generation !== inputGeneration) return;
-    // Даже короткий первый клик звучит, пока браузер включает аудио.
-    note.voice = engine.noteOn(
+    note.source = engine.noteOn(
       index,
       engine.context.currentTime,
-      note.released ? 0.04 : null,
+      note.released ? 0.08 : null,
+      NOTES[index].frequency,
+      0,
     );
-    loop.noteOn(token, index);
-    if (note.released) loop.noteOff(token);
+    composition.noteOn(token, index);
+    if (note.released) composition.noteOff(token);
   } catch (error) {
     held.delete(token);
     showError(error, "Не удалось включить звук");
@@ -296,203 +222,372 @@ function noteOff(token) {
   const note = held.get(token);
   if (!note) return;
   note.released = true;
-  note.voice?.stop(engine.context.currentTime, engine.synthSettings.release);
-  if (note.voice)
-    releases[note.index] =
-      engine.context.currentTime + engine.synthSettings.release;
-  loop.noteOff(token);
+  note.source?.stop();
+  composition.noteOff(token);
   held.delete(token);
 }
-// На телефоне первое касание разрешает аудио при отпускании пальца.
-document.addEventListener(
-  "touchend",
-  () => {
-    if (engine.context?.state === "suspended") safe(() => engine.ready());
-  },
-  { passive: true },
-);
 function releaseHeld() {
   inputGeneration++;
-  for (const token of held.keys()) noteOff(token);
+  for (const token of [...held.keys()]) noteOff(token);
 }
-
-document.addEventListener("keydown", (event) => {
+function editable(target) {
+  return target.matches('input,select,textarea,[contenteditable="true"]');
+}
+document.addEventListener("keydown", (e) => {
   if (
-    event.metaKey ||
-    event.ctrlKey ||
-    event.altKey ||
+    e.repeat ||
+    e.ctrlKey ||
+    e.altKey ||
+    e.metaKey ||
+    editable(e.target) ||
     document.querySelector("dialog[open]")
   )
     return;
-  const element = event.target;
-  if (element.matches('input, textarea, select, [contenteditable="true"]'))
-    return;
-  if (mode === "voice" && event.code === "Space" && element === document.body) {
-    event.preventDefault();
-    if (!event.repeat) safe(() => voice.play());
-    return;
+  const index = NOTES.findIndex((n) => n.code === e.code);
+  if (mode === "play" && step === 0 && index >= 0) {
+    e.preventDefault();
+    noteOn(e.code, index);
   }
-  const index = NOTES.findIndex((note) => note.code === event.code);
-  if (index >= 0 && mode === "play") {
-    event.preventDefault();
-    if (!event.repeat) noteOn(event.code, index);
+  if (e.code === "Space" && !e.target.closest("button")) {
+    e.preventDefault();
+    safe(async () => {
+      if (mode === "voice") await voice.play();
+      else {
+        await engine.ready();
+        toggleTrack();
+      }
+    });
   }
 });
-document.addEventListener("keyup", (event) => noteOff(event.code));
+document.addEventListener("keyup", (e) => noteOff(e.code));
 window.addEventListener("blur", releaseHeld);
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
     releaseHeld();
-    loop.finishRecording();
-    loop.stopPlayback();
-    melodyPlayer.stop();
+    composition.finishRecording();
+    if (composition.kind) composition.pause();
     voice.leave();
   }
 });
 window.addEventListener("pagehide", () => {
-  melodyPlayer.stop();
   releaseHeld();
-  loop.clear();
+  composition.finishRecording();
+  composition.stop();
   voice.leave();
   voice.cleanupMicrophone();
   engine.stopAll();
 });
 
-function setMode(value) {
-  if (value === mode) return;
+const names = ["Мелодия", "Бас", "Ритм", "Весь трек"];
+const titles = [
+  "1. Сыграй мелодию",
+  "2. Добавь бас",
+  "3. Собери ритм",
+  "4. Собери свой трек",
+];
+const descriptions = [
+  "Нажми «Записать мелодию» и сыграй на клавишах. Мы сохраним её для повторения.",
+  "Послушай три варианта и выбери тот, который подходит твоей мелодии.",
+  "Нажимай на клетки: яркая клетка — удар, тёмная — пауза.",
+  "Выбери партии для каждой части. Получится музыка с началом, развитием и финалом.",
+];
+function selectStep(value) {
   releaseHeld();
-  loop.finishRecording();
-  loop.stopPlayback();
-  melodyPlayer.stop();
-  $("#melody-library").open = false;
+  composition.finishRecording();
+  if (composition.kind === "preview") composition.stop();
+  step = value;
+  document.querySelectorAll("[data-step]").forEach((button) => {
+    const active = Number(button.dataset.step) === step;
+    button.classList.toggle("selected", active);
+    if (active) button.setAttribute("aria-current", "step");
+    else button.removeAttribute("aria-current");
+  });
+  ["melody", "bass", "rhythm", "track"].forEach(
+    (name, i) => ($(`#step-${name}`).hidden = i !== step),
+  );
+  $("#step-title").textContent = titles[step];
+  $("#step-description").textContent = descriptions[step];
+  $("#settings-title").textContent = names[step];
+  $("#settings-label").textContent =
+    step === 3 ? "ЗВУЧАНИЕ ТРЕКА" : "НАСТРОЙКИ ПАРТИИ";
+  for (const [name, control] of musicSliders) {
+    control.input.value =
+      step === 3
+        ? name === "volume"
+          ? engine.synthSettings.volume
+          : engine.mixSettings[name]
+        : engine.layers[step][name];
+    control.display();
+  }
+  $("#timbre").hidden = step !== 0;
+  $("#timbre-summary").hidden = step === 0;
+  $("#timbre-summary").textContent =
+    step === 1 ? "Басовый" : step === 2 ? "Ударные" : "Общий";
+  $("#timbre").value = engine.layers[0].preset;
+  $("#next-title").textContent =
+    step === 3
+      ? "Твоя композиция готова"
+      : `Дальше — ${["добавить бас", "собрать ритм", "собрать трек"][step]}`;
+  $("#next-description").textContent =
+    step === 3
+      ? "Послушай целиком, измени детали и скачай результат."
+      : "Ты можешь вернуться к любому шагу и поменять звучание.";
+  $("#step-next").textContent =
+    step === 3
+      ? "Скачать трек"
+      : ["Дальше: бас", "Дальше: ритм", "Дальше: трек"][step];
+  updateMusic();
+}
+document
+  .querySelectorAll("[data-step]")
+  .forEach((button) =>
+    button.addEventListener("click", () =>
+      selectStep(Number(button.dataset.step)),
+    ),
+  );
+$("#step-next").addEventListener("click", () =>
+  step < 3
+    ? selectStep(step + 1)
+    : safe(() => composition.download(), "Не удалось скачать трек"),
+);
+$("#timbre").addEventListener("change", (e) =>
+  engine.updateLayer(0, "preset", e.target.value),
+);
+$("#tempo").addEventListener("change", (e) => {
+  const number = Number(e.target.value);
+  const value = Number.isFinite(number)
+    ? Math.min(180, Math.max(60, Math.round(number)))
+    : 120;
+  e.target.value = value;
+  composition.setTempo(value);
+});
+$("#melody-record").addEventListener("click", () =>
+  safe(async () => {
+    releaseHeld();
+    await engine.ready();
+    if (composition.recording) composition.finishRecording();
+    else composition.startRecording();
+  }),
+);
+$("#melody-play").addEventListener("click", () =>
+  safe(async () => {
+    await engine.ready();
+    composition.kind === "melody"
+      ? composition.pause()
+      : composition.play("melody");
+  }),
+);
+$("#melody-clear").addEventListener("click", () => {
+  releaseHeld();
+  composition.clearMelody();
+});
+function toggleTrack() {
+  if (composition.kind === "track") composition.pause();
+  else composition.play("track");
+}
+$("#track-play").addEventListener("click", () =>
+  safe(async () => {
+    releaseHeld();
+    await engine.ready();
+    toggleTrack();
+  }),
+);
+$("#track-download").addEventListener("click", () =>
+  safe(() => composition.download(), "Не удалось скачать трек"),
+);
+
+for (const option of BASS_OPTIONS) {
+  const item = document.createElement("div");
+  item.className = "bass-option";
+  item.dataset.bass = option.id;
+  item.innerHTML = `<h3>${option.name}</h3><p>${option.description}</p><div class="action-row"><button class="button" data-preview="${option.id}">Послушать</button><button class="button" data-add-bass="${option.id}">Добавить</button></div>`;
+  item.querySelector("[data-preview]").addEventListener("click", () =>
+    safe(async () => {
+      await engine.ready();
+      composition.kind === "preview" && composition.previewId === option.id
+        ? composition.stop()
+        : composition.preview(option.id);
+    }),
+  );
+  item.querySelector("[data-add-bass]").addEventListener("click", () => {
+    composition.bass = composition.bass === option.id ? null : option.id;
+    composition.refresh();
+  });
+  $("#bass-options").append(item);
+}
+for (const [drum, name] of ["Бочка", "Малый", "Хэт"].entries()) {
+  const label = document.createElement("span");
+  label.className = "drum-name";
+  label.textContent = name;
+  $("#drum-grid").append(label);
+  for (let index = 0; index < 8; index++) {
+    const button = document.createElement("button");
+    button.className = "drum-step";
+    button.textContent = index + 1;
+    button.dataset.drum = drum;
+    button.dataset.beat = index;
+    button.setAttribute("aria-pressed", "false");
+    button.setAttribute("aria-label", `${name}, шаг ${index + 1}`);
+    button.addEventListener("click", () =>
+      safe(async () => {
+        composition.drums[drum][index] = !composition.drums[drum][index];
+        const active = composition.drums[drum][index];
+        const wasPlaying = !!composition.kind;
+        composition.refresh();
+        if (active && !wasPlaying) {
+          await engine.ready();
+          engine.drum(drum);
+        }
+      }),
+    );
+    $("#drum-grid").append(button);
+  }
+}
+$("#rhythm-play").addEventListener("click", () =>
+  safe(async () => {
+    await engine.ready();
+    composition.kind === "rhythm"
+      ? composition.pause()
+      : composition.play("rhythm");
+  }),
+);
+$("#rhythm-clear").addEventListener("click", () => {
+  composition.drums.forEach((row) => row.fill(false));
+  composition.refresh();
+});
+for (let section = 0; section < 3; section++) {
+  const item = document.createElement("div");
+  item.className = "track-section";
+  item.dataset.section = section;
+  item.innerHTML = `<h3>${["Начало", "Развитие", "Финал"][section]}</h3><p class="part-duration"></p><div class="track-toggles"></div><p class="part-hint">Нажми на партию, чтобы включить её.</p>`;
+  for (let channel = 0; channel < 3; channel++) {
+    const button = document.createElement("button");
+    button.textContent = names[channel];
+    button.dataset.section = section;
+    button.dataset.channel = channel;
+    button.addEventListener("click", () => {
+      composition.parts[section][channel] =
+        !composition.parts[section][channel];
+      composition.refresh();
+    });
+    item.querySelector(".track-toggles").append(button);
+  }
+  $("#track-sections").append(item);
+}
+function updateMusic() {
+  const recording = composition.recording;
+  const availability = [
+    !!composition.notes.length,
+    !!composition.bass,
+    composition.hasDrums,
+  ];
+  $("#melody-record").textContent = recording
+    ? "Остановить запись"
+    : "Записать мелодию";
+  $("#melody-record").setAttribute("aria-pressed", String(recording));
+  $("#melody-play").textContent =
+    composition.kind === "melody"
+      ? "Пауза"
+      : composition.pausedKind === "melody"
+        ? "Продолжить"
+        : "Послушать";
+  $("#melody-play").disabled = !availability[0] || recording;
+  $("#melody-clear").disabled = !availability[0] || recording;
+  $("#tempo").disabled = recording;
+  $("#track-play").textContent =
+    composition.kind === "track"
+      ? "Пауза"
+      : composition.pausedKind === "track"
+        ? "Продолжить"
+        : "Слушать трек";
+  $("#track-play").classList.toggle("active", composition.kind === "track");
+  const hasScore = composition.events().events.length > 0;
+  $("#track-play").disabled = !hasScore || recording;
+  $("#track-download").disabled =
+    !hasScore || recording || composition.exporting;
+  $("#track-download").textContent = composition.exporting
+    ? "Сохраняем…"
+    : "Скачать трек";
+  $("#step-next").disabled =
+    step === 3 && (!hasScore || recording || composition.exporting);
+  $("#rhythm-play").disabled = $("#rhythm-clear").disabled =
+    !composition.hasDrums;
+  $("#rhythm-play").textContent =
+    composition.kind === "rhythm" ? "Пауза" : "Послушать ритм";
+  $("#melody-status").textContent = recording
+    ? `Записываем · ${decimals(composition.elapsed)} / 20.0 с`
+    : availability[0]
+      ? `Твоя мелодия · ${decimals(composition.loopBeats * composition.secondsPerBeat)} секунды`
+      : "До 20 секунд · начни с нескольких нот";
+  document
+    .querySelectorAll("[data-thread]")
+    .forEach((label) =>
+      label.classList.toggle(
+        "thread-on",
+        availability[Number(label.dataset.thread)],
+      ),
+    );
+  document.querySelectorAll("[data-bass]").forEach((item) => {
+    const selected = composition.bass === item.dataset.bass;
+    const preview =
+      composition.kind === "preview" &&
+      composition.previewId === item.dataset.bass;
+    item.classList.toggle("selected", selected);
+    const add = item.querySelector("[data-add-bass]");
+    add.textContent = selected ? "Убрать бас" : "Добавить";
+    add.setAttribute("aria-pressed", String(selected));
+    const play = item.querySelector("[data-preview]");
+    play.textContent = preview ? "Остановить" : "Послушать";
+    play.classList.toggle("active", preview);
+  });
+  document
+    .querySelectorAll(".drum-step")
+    .forEach((button) =>
+      button.setAttribute(
+        "aria-pressed",
+        String(composition.drums[button.dataset.drum][button.dataset.beat]),
+      ),
+    );
+  const bars = composition.sectionBars;
+  document.querySelectorAll(".track-section").forEach((item, i) => {
+    item.querySelector(".part-duration").textContent =
+      `${bars[i]} такта · ${["знакомим с мелодией", "добавляем движение", "оставляем послезвучие"][i]}`;
+    item.querySelectorAll("[data-channel]").forEach((button) => {
+      const channel = Number(button.dataset.channel);
+      button.disabled = !availability[channel];
+      button.setAttribute(
+        "aria-pressed",
+        String(composition.parts[i][channel] && availability[channel]),
+      );
+      button.setAttribute(
+        "aria-label",
+        `${names[channel]} в части «${["Начало", "Развитие", "Финал"][i]}»`,
+      );
+    });
+  });
+}
+composition.addEventListener("change", updateMusic);
+
+function setMode(value) {
+  if (mode === value) return;
+  releaseHeld();
+  composition.finishRecording();
+  composition.stop();
   engine.stopAll();
   voice.leave();
   mode = value;
   engine.setSynthEnabled(value === "play");
   $("#play-screen").hidden = value !== "play";
   $("#voice-screen").hidden = value !== "voice";
-  for (const name of ["play", "voice"]) {
-    $(`#mode-${name}`).classList.toggle("selected", name === value);
-    $(`#mode-${name}`).setAttribute("aria-pressed", String(name === value));
-  }
-  if (visuals) {
-    visuals.mode = value;
-    visuals.energy = 0;
-    visuals.noteLevels.fill(0);
-    visuals.resize();
-  }
+  $(".studio-transport").hidden = value !== "play";
+  $("#mode-voice").hidden = value === "voice";
+  $("#mode-play").hidden = value === "play";
+  document.body.classList.toggle("voice-mode", value === "voice");
+  voiceVisuals?.resize();
+  updateVoice();
 }
-$("#mode-play").addEventListener("click", () => setMode("play"));
 $("#mode-voice").addEventListener("click", () => setMode("voice"));
-document.querySelectorAll("[data-preset]").forEach((button) =>
-  button.addEventListener("click", () => {
-    engine.updateLayer(selectedLayer, "preset", button.dataset.preset);
-    document.querySelectorAll("[data-preset]").forEach((other) => {
-      const selected = other === button;
-      other.classList.toggle("selected", selected);
-      other.setAttribute("aria-pressed", String(selected));
-    });
-  }),
-);
-
-for (const melody of MELODIES) {
-  const button = document.createElement("button");
-  button.className = "melody-item";
-  button.dataset.melody = melody.id;
-  button.setAttribute("aria-pressed", "false");
-  const title = document.createElement("span");
-  title.textContent = melody.title;
-  const author = document.createElement("small");
-  author.textContent = melody.author;
-  button.append(title, author);
-  button.addEventListener("click", () => {
-    $("#melody-library").open = false;
-    $("#melody-library summary").focus();
-    loop.finishRecording();
-    loop.stopPlayback();
-    safe(() => melodyPlayer.play(melody));
-  });
-  $("#melody-list").append(button);
-}
-melodyPlayer.addEventListener("change", () => {
-  $("#melody-stop").disabled = !melodyPlayer.playing;
-  $("#melody-selected").textContent =
-    melodyPlayer.selected?.title || "Выбрать мелодию";
-  document
-    .querySelectorAll("[data-melody]")
-    .forEach((button) =>
-      button.setAttribute(
-        "aria-pressed",
-        String(
-          melodyPlayer.playing &&
-            Number(button.dataset.melody) === melodyPlayer.selected.id,
-        ),
-      ),
-    );
-});
-$("#melody-stop").addEventListener("click", () => melodyPlayer.stop());
-document.addEventListener("pointerdown", (event) => {
-  if (!$("#melody-library").contains(event.target))
-    $("#melody-library").open = false;
-});
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && $("#melody-library").open) {
-    $("#melody-library").open = false;
-    $("#melody-library summary").focus();
-  }
-});
-
-$("#loop-record").addEventListener("click", () =>
-  safe(async () => {
-    await engine.ready();
-    melodyPlayer.stop();
-    if (loop.state === "recording") loop.finishRecording();
-    else loop.startRecording();
-  }),
-);
-$("#loop-play").addEventListener("click", () =>
-  safe(async () => {
-    await engine.ready();
-    melodyPlayer.stop();
-    if (loop.state === "playing") loop.stopPlayback();
-    else loop.startPlayback();
-  }),
-);
-$("#loop-clear").addEventListener("click", () => loop.clear());
-$("#loop-download").addEventListener("click", () =>
-  safe(() => loop.download(), "Не удалось скачать мелодию"),
-);
-loop.addEventListener("change", updateLoop);
-function updateLoop() {
-  const recording = loop.state === "recording",
-    playing = loop.state === "playing";
-  $(".loop-copy h3").textContent =
-    compactLayout.matches && recording ? "Запись мелодии" : "Твоя мелодия";
-  $(".loop-copy .mobile-only").textContent = recording
-    ? `0.0 / ${decimals(LOOP_LIMIT_SECONDS)} с`
-    : "До 20 секунд";
-  $("#loop-record").textContent = recording ? "Остановить" : "Записать";
-  $("#loop-record").classList.toggle("active", recording);
-  $("#loop-play").textContent = playing ? "Пауза" : "Повтор";
-  $("#loop-play").classList.toggle("active", playing);
-  $("#loop-play").disabled = !loop.notes.length || recording;
-  $("#loop-clear").disabled = loop.state === "empty" || recording;
-  $("#loop-download").disabled =
-    !loop.notes.length || recording || loop.exporting;
-  $("#loop-download").textContent = loop.exporting
-    ? "Сохраняем…"
-    : "Скачать";
-  $("#loop-status").textContent = recording
-    ? `Записываем · 0.0 / ${decimals(LOOP_LIMIT_SECONDS)} с`
-    : playing
-      ? `Повторяем · ${decimals(loop.duration)} секунды`
-      : loop.notes.length
-        ? `Мелодия · ${decimals(loop.duration)} секунды`
-        : compactLayout.matches
-          ? "Сначала сыграй и запиши свою мелодию."
-          : "Сначала запиши свою мелодию →";
-}
-
+$("#mode-play").addEventListener("click", () => setMode("play"));
 $("#voice-record").addEventListener("click", () => safe(() => voice.record()));
 $("#voice-play").addEventListener("click", () => safe(() => voice.play()));
 $("#voice-reset").addEventListener("click", () => {
@@ -504,8 +599,7 @@ $("#voice-download").addEventListener("click", () =>
   safe(() => voice.download(), "Не удалось сохранить запись"),
 );
 voice.addEventListener("change", updateVoice);
-voice.addEventListener("error", (event) => showError(event.detail));
-
+voice.addEventListener("error", (e) => showError(e.detail));
 function updateVoice() {
   const recording = voice.state === "recording";
   const busy = ["requesting", "processing", "loading"].includes(voice.state);
@@ -533,9 +627,7 @@ function updateVoice() {
   $("#voice-reset").disabled = $("#voice-delete").disabled = !enabled;
   $("#voice-effects").disabled = !enabled;
   $("#voice-download").disabled = !enabled || voice.exporting;
-  $("#voice-download").textContent = voice.exporting
-    ? "Сохраняем…"
-    : "Скачать";
+  $("#voice-download").textContent = voice.exporting ? "Сохраняем…" : "Скачать";
   $("#voice-summary").textContent = recording
     ? "Идёт запись…"
     : voice.state === "processing"
@@ -643,78 +735,73 @@ async function safe(action, title) {
   }
 }
 
-let visuals;
-try {
-  const response = await fetch(
-    new URL("../assets/contours.json?v=2", import.meta.url),
-  );
-  if (!response.ok)
-    throw new Error(
-      "Не удалось загрузить форму. Проверь файлы в папке assets.",
+new WeaveVisuals(engine, composition, pads, (now, sounding) => {
+  if (mode !== "play") return;
+  if (composition.recording)
+    $("#melody-status").textContent =
+      `Записываем · ${decimals(composition.elapsed)} / 20.0 с`;
+  const active = sounding.find((v) => v.channel === 0);
+  $("#weave-caption").textContent = composition.recording
+    ? "Записываем твою мелодию — нота за нотой."
+    : composition.kind === "track"
+      ? "Играет твоя композиция"
+      : composition.kind === "preview"
+        ? "Слушаем басовую партию"
+        : active
+          ? `Сейчас звучит ${NOTES[active.index].label}`
+          : composition.hasMusic
+            ? "Каждая партия становится частью общего звучания."
+            : "Пока тихо. Сыграй первую ноту.";
+  const playhead = composition.kind
+    ? Math.floor(composition.playhead * 2) % 8
+    : -1;
+  document
+    .querySelectorAll(".drum-step")
+    .forEach((button) =>
+      button.classList.toggle(
+        "playhead",
+        Number(button.dataset.beat) === playhead &&
+          ["track", "rhythm"].includes(composition.kind),
+      ),
     );
-  const geometry = await response.json();
-  visuals = new SoundVisuals(engine, voice, geometry, (now) => {
-    if (mode === "play") {
-      const sounding = [...engine.voices].filter(
-        (v) => v.start <= now && v.end > now,
-      );
-      const currentNotes = sounding.filter((v) => v.gateEnd > now);
-      for (let index = 0; index < pads.length; index++) {
-        const pressed =
-          [...held.values()].some((v) => v.index === index) ||
-          sounding.some((v) => v.index === index && v.gateEnd > now);
-        pads[index].classList.toggle("pressed", pressed);
-        pads[index].classList.toggle(
-          "releasing",
-          !pressed &&
-            (releases[index] > now || sounding.some((v) => v.index === index)),
-        );
-        pads[index].setAttribute("aria-pressed", String(pressed));
-        const current = currentNotes.find((v) => v.index === index);
-        pads[index].querySelector(".note").textContent =
-          current?.label || NOTES[index].label;
-      }
-      const active = sounding.length > 0;
-      $("#synth-stage").classList.toggle("sounding", active);
-      $("#synth-caption").textContent = active
-        ? currentNotes.length === 0
-          ? "Звук затухает"
-          : currentNotes.length > 1
-            ? "Сейчас звучит аккорд"
-            : `Сейчас звучит ${currentNotes[0].label || NOTES[currentNotes[0].index].label}`
-        : "Твой звук начинается здесь";
-      const labels = [
-        ...new Set(currentNotes.map((v) => v.label || NOTES[v.index].label)),
-      ];
-      $("#synth-status").textContent = active
-        ? labels.length
-          ? labels.join(" + ")
-          : "Затухание"
-        : compactLayout.matches
-          ? "Коснись любой ноты ниже"
-          : "Нажми любую ноту внизу ↓";
-      if (loop.state === "recording") {
-        $("#loop-status").textContent =
-          `Записываем · ${decimals(loop.elapsed)} / ${decimals(LOOP_LIMIT_SECONDS)} с`;
-        $(".loop-copy .mobile-only").textContent =
-          `${decimals(loop.elapsed)} / ${decimals(LOOP_LIMIT_SECONDS)} с`;
-      }
-    } else {
-      if (voice.state === "recording")
-        $("#voice-status").textContent =
-          `Записываем · ${decimals(voice.elapsed)} / ${decimals(VOICE_LIMIT_SECONDS)} с`;
-      if (voice.state === "playing")
-        $("#voice-status").textContent =
-          `Слушаем запись · ${decimals(voice.elapsed)} / ${decimals(voice.buffer.duration)} секунды`;
-    }
-  });
-} catch (error) {
-  showError(error, "Запусти проект через локальный сервер");
-}
-updateLoop();
-updateVoice();
-compactLayout.addEventListener("change", () => {
-  fitStudio();
-  updateLoop();
-  updateVoice();
+  const bars = composition.sectionBars,
+    beat = composition.playhead;
+  const part = beat < bars[0] * 4 ? 0 : beat < (bars[0] + bars[1]) * 4 ? 1 : 2;
+  document
+    .querySelectorAll(".track-section")
+    .forEach((item, i) =>
+      item.classList.toggle(
+        "playing",
+        composition.kind === "track" && part === i,
+      ),
+    );
 });
+async function startVoiceVisuals() {
+  try {
+    const response = await fetch(
+      new URL("../assets/contours.json?v=2", import.meta.url),
+    );
+    if (!response.ok) throw new Error("Не удалось загрузить графику голоса.");
+    voiceVisuals = new SoundVisuals(
+      engine,
+      voice,
+      await response.json(),
+      () => {
+        if (mode !== "voice") return;
+        if (voice.state === "recording")
+          $("#voice-status").textContent =
+            `Записываем · ${decimals(voice.elapsed)} / 20.0 с`;
+        if (voice.state === "playing")
+          $("#voice-status").textContent =
+            `Слушаем запись · ${decimals(voice.elapsed)} / ${decimals(voice.buffer.duration)} секунды`;
+      },
+      { voiceOnly: true },
+    );
+  } catch (error) {
+    showError(error, "Не удалось загрузить визуализацию");
+  }
+}
+selectStep(0);
+updateVoice();
+startVoiceVisuals();
+compactLayout.addEventListener("change", updateVoice);

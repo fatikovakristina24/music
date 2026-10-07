@@ -9,7 +9,7 @@ import {
   PRESETS,
   createSynthChannel,
   synthEffectTail,
-} from "./synth-channel.js?v=20261005-labels1";
+} from "./synth-channel.js?v=20261008-weave";
 import { shiftBuffer } from "./pitch-dsp.js";
 
 export const NOTES = [
@@ -29,6 +29,14 @@ export class AudioEngine {
     this.synthSettings = { release: 1.8, volume: 65 };
     this.layers = DEFAULT_LAYERS.map((layer) => ({ ...layer }));
     this.effects = { ...DEFAULT_EFFECTS };
+    this.mixSettings = {
+      enabled: true,
+      filter: 18000,
+      echo: 0,
+      room: 0,
+      pan: 0,
+      volume: 100,
+    };
     this.voices = new Set();
     this.voiceLimit = 32;
     this.synthEnabled = true;
@@ -63,7 +71,13 @@ export class AudioEngine {
     this.synthVolume.gain.value = this.synthEnabled
       ? this.synthSettings.volume / 100
       : 0;
-    this.synthInput.connect(this.synthVolume);
+    this.synthBus = createSynthChannel(
+      ctx,
+      this.mixSettings,
+      this.synthVolume,
+      9,
+    );
+    this.synthInput.connect(this.synthBus.input);
     this.channels = this.layers.map((settings, index) =>
       createSynthChannel(ctx, settings, this.synthInput, index),
     );
@@ -106,6 +120,11 @@ export class AudioEngine {
       );
   }
 
+  updateMix(name, value) {
+    this.mixSettings[name] = value;
+    this.synthBus?.update(name, value);
+  }
+
   updateLayer(index, name, value) {
     if (!this.layers[index]) return;
     this.layers[index][name] = value;
@@ -127,11 +146,13 @@ export class AudioEngine {
     when = this.context.currentTime,
     gateDuration = null,
     frequency = NOTES[index].frequency,
+    channelIndex = null,
   ) {
     const ctx = this.context;
     if (this.voices.size >= this.voiceLimit) [...this.voices][0].kill();
     const settings = { ...this.synthSettings };
-    const sources = this.layers.map((layer, channel) => {
+    const sources = this.layers.flatMap((layer, channel) => {
+      if (channelIndex !== null && channel !== channelIndex) return [];
       const preset = PRESETS[layer.preset];
       const gain = ctx.createGain();
       gain.gain.value = 0;
@@ -148,10 +169,11 @@ export class AudioEngine {
         .connect(this.channels[channel].input);
       gain.gain.setValueAtTime(0, when);
       gain.gain.linearRampToValueAtTime(preset.gain, when + preset.attack);
-      return { gain, filter, oscillator, preset };
+      return [{ gain, filter, oscillator, preset }];
     });
     const voice = {
       index,
+      channel: channelIndex,
       start: when,
       end: Infinity,
       gateEnd: Infinity,
@@ -200,6 +222,65 @@ export class AudioEngine {
     }
     this.voices.add(voice);
     if (gateDuration !== null) voice.stop(when + Math.max(0.04, gateDuration));
+    return voice;
+  }
+
+  // Ударные синтезируются отдельно: низкий осциллятор и короткий шум.
+  drum(type, when = this.context.currentTime) {
+    const ctx = this.context;
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+    const duration = type === 0 ? 0.34 : type === 1 ? 0.19 : 0.07;
+    let source;
+    if (type === 0) {
+      source = ctx.createOscillator();
+      source.frequency.setValueAtTime(150, when);
+      source.frequency.exponentialRampToValueAtTime(42, when + 0.15);
+      filter.type = "lowpass";
+      filter.frequency.value = 500;
+    } else {
+      this.drumNoise ??= ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+      if (!this.noiseReady) {
+        const data = this.drumNoise.getChannelData(0);
+        let seed = 71;
+        for (let i = 0; i < data.length; i++) {
+          seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+          data[i] = seed / 2147483648 - 1;
+        }
+        this.noiseReady = true;
+      }
+      source = ctx.createBufferSource();
+      source.buffer = this.drumNoise;
+      filter.type = type === 1 ? "bandpass" : "highpass";
+      filter.frequency.value = type === 1 ? 1800 : 7000;
+      filter.Q.value = 0.7;
+    }
+    source.connect(filter).connect(gain).connect(this.channels[2].input);
+    gain.gain.setValueAtTime(type === 0 ? 0.5 : type === 1 ? 0.33 : 0.1, when);
+    gain.gain.exponentialRampToValueAtTime(0.0001, when + duration);
+    const voice = {
+      index: -1,
+      channel: 2,
+      drum: type,
+      start: when,
+      gateEnd: when + duration,
+      end: when + duration,
+      kill: () => {
+        gain.gain.cancelScheduledValues(ctx.currentTime);
+        gain.gain.setTargetAtTime(0, ctx.currentTime, 0.005);
+        source.stop(ctx.currentTime + 0.02);
+        voice.end = voice.gateEnd = ctx.currentTime;
+      },
+    };
+    this.voices.add(voice);
+    source.onended = () => {
+      source.disconnect();
+      filter.disconnect();
+      gain.disconnect();
+      this.voices.delete(voice);
+    };
+    source.start(when);
+    source.stop(when + duration + 0.01);
     return voice;
   }
 

@@ -6,180 +6,157 @@
     <meta name="theme-color" content="#0a0a0b" />
     <meta
       name="description"
-      content="КОНТУР — интерактивный синтезатор и лаборатория твоего голоса. Играй, слушай и наблюдай, как звук становится формой."
+      content="КОНТУР — сплети свою музыку из мелодии, баса и ритма. Запиши ноты, собери композицию и скачай свой трек."
     />
-    <title>КОНТУР — звук становится формой</title>
+    <title>КОНТУР — сплети свою музыку</title>
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="styles.css?v=20261007-voice-buttons" />
-    <script type="module" src="js/app.js?v=20261007-voice-buttons"></script>
+    <link rel="stylesheet" href="styles.css?v=20261008-weave" />
+    <link rel="stylesheet" href="studio.css?v=20261008-weave" />
+    <script type="module" src="js/app.js?v=20261008-weave"></script>
   </head>
-  <body>
-    <main class="instrument" aria-label="Синтезатор КОНТУР">
+  <body class="music-studio">
+    <main class="instrument" aria-label="Музыкальная студия КОНТУР">
       <header class="header">
-        <h1 class="brand">КОНТУР</h1>
-        <nav class="mode-switch" aria-label="Режим инструмента">
-          <button id="mode-play" class="mode selected" aria-pressed="true">
-            Играть
-          </button>
-          <button id="mode-voice" class="mode" aria-pressed="false">
-            Мой голос
-          </button>
-        </nav>
-        <button
-          id="help-open"
-          class="button help-button"
-          aria-label="Как это работает?"
-        >
-          <span class="desktop-only">Как это работает?</span>
-          <span class="mobile-only" aria-hidden="true">?</span>
-        </button>
-      </header>
-
-      <section
-        id="play-screen"
-        class="screen"
-        aria-label="Играть на синтезаторе"
-      >
-        <div class="workspace">
-          <div class="stage" id="synth-stage">
-            <p class="stage-caption" id="synth-caption">
-              Твой звук начинается здесь
-            </p>
-            <canvas id="synth-canvas" aria-hidden="true"></canvas>
-            <p class="stage-status" id="synth-status">
-              Нажми любую ноту внизу ↓
-            </p>
-          </div>
-          <aside class="controls synth-controls" aria-label="Настройки звука">
-            <h2>Мелодии</h2>
-            <p class="layer-description">
-              Выбери A или B для настройки.<br />Вкл/Выкл управляет звучанием.
-            </p>
-            <div class="layer-switch" aria-label="Мелодии и их настройки">
-              <div class="layer-option">
-                <button data-layer="0" class="selected" aria-pressed="true">
-                  A
-                </button>
-                <button
-                  class="layer-toggle"
-                  data-layer-toggle="0"
-                  aria-label="Мелодия A включена"
-                  aria-pressed="true"
-                >
-                  Вкл
-                </button>
-              </div>
-              <div class="layer-option">
-                <button data-layer="1" aria-pressed="false">B</button>
-                <button
-                  class="layer-toggle"
-                  data-layer-toggle="1"
-                  aria-label="Мелодия B включена"
-                  aria-pressed="true"
-                >
-                  Вкл
-                </button>
-              </div>
-            </div>
-            <div class="presets" aria-label="Тембр">
-              <button data-preset="soft" class="selected" aria-pressed="true">
-                Мягкий
-              </button>
-              <button data-preset="bass" aria-pressed="false">Басовый</button>
-              <button data-preset="bright" aria-pressed="false">Яркий</button>
-            </div>
-            <div class="slider-list" id="synth-sliders"></div>
-          </aside>
-        </div>
-        <div class="section-copy">
-          <h2>Сыграй мелодию</h2>
-          <p>
-            <span class="desktop-only"
-              >Нажимай мышью или клавишами A–K. Удерживай несколько нот, чтобы
-              услышать сочетание.</span
-            >
-            <span class="mobile-only"
-              >Касайся и удерживай. Можно играть<br />несколько нот двумя
-              пальцами.</span
-            >
-          </p>
-        </div>
-        <div class="melody-toolbar">
-          <div class="melody-picker">
-            <details id="melody-library" class="melody-library">
-              <summary>
-                <span class="melody-picker-copy"
-                  ><small>Знакомые мелодии</small
-                  ><span id="melody-selected">Выбрать мелодию</span></span
-                >
-                <svg
-                  class="melody-chevron"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 18 18"
-                  fill="none"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="m4 7 5 5 5-5"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </summary>
-              <div class="melody-menu">
-                <p class="melody-menu-hint">
-                  Выбери тему — синтезатор сыграет её
-                </p>
-                <div id="melody-list"></div>
-              </div>
-            </details>
-            <button
-              id="melody-stop"
-              aria-label="Остановить мелодию"
-              title="Остановить мелодию"
-              disabled
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 18 18"
-                fill="none"
-                aria-hidden="true"
-              >
-                <rect
-                  x="4"
-                  y="4"
-                  width="10"
-                  height="10"
-                  rx="1.5"
-                  fill="currentColor"
-                />
-              </svg>
+        <div>
+          <h1 class="brand">КОНТУР</h1>
+          <div class="brand-subline">
+            <span>СПЛЕТИ СВОЮ МУЗЫКУ</span
+            ><button id="mode-voice">Мой голос</button
+            ><button id="mode-play" hidden>Вернуться к музыке</button
+            ><button id="help-open" aria-label="Как это работает">
+              Помощь
             </button>
           </div>
         </div>
-        <div class="pads" id="pads" aria-label="Ноты"></div>
-        <div class="loop-panel">
-          <div class="loop-copy">
-            <h3>Твоя мелодия</h3>
-            <p>
-              <span class="desktop-only">Запиши до 20 секунд музыки</span
-              ><span class="mobile-only">До 20 секунд</span>
+        <div class="studio-transport">
+          <button id="track-play" class="button" disabled>Слушать трек</button
+          ><label class="tempo-control"
+            ><input
+              id="tempo"
+              type="number"
+              min="60"
+              max="180"
+              step="1"
+              value="120"
+              aria-label="Темп в ударах в минуту"
+            /><span>BPM</span></label
+          ><button id="track-download" class="button" disabled>
+            Скачать трек
+          </button>
+        </div>
+      </header>
+      <section id="play-screen" aria-label="Создать свою музыку">
+        <nav class="studio-steps" aria-label="Шаги создания музыки">
+          <button data-step="0" aria-current="step" class="selected">
+            01 Мелодия</button
+          ><button data-step="1">02 Бас</button
+          ><button data-step="2">03 Ритм</button
+          ><button data-step="3">04 Трек</button>
+        </nav>
+        <section
+          class="studio-visual"
+          aria-label="Визуализация трёх музыкальных партий"
+        >
+          <h2>Твоё звучание</h2>
+          <p id="weave-caption" role="status">Пока тихо. Сыграй первую ноту.</p>
+          <canvas id="weave-canvas" aria-hidden="true"></canvas>
+          <div class="weave-bottom">
+            <div class="weave-legend">
+              <span data-thread="0">Мелодия</span
+              ><span data-thread="1">Бас</span><span data-thread="2">Ритм</span>
+            </div>
+            <p>Три партии складываются в одну композицию</p>
+          </div>
+        </section>
+        <section class="work-panel" aria-labelledby="step-title">
+          <h2 id="step-title">1. Сыграй мелодию</h2>
+          <p id="step-description">
+            Нажми «Записать мелодию» и сыграй на клавишах. Мы сохраним её для
+            повторения.
+          </p>
+          <div id="step-melody" class="step-content">
+            <div
+              id="pads"
+              class="studio-pads"
+              aria-label="Ноты — клавиши A S D F G H J K"
+            ></div>
+            <div class="melody-actions">
+              <div class="action-row">
+                <button id="melody-record" class="button primary">
+                  Записать мелодию</button
+                ><button id="melody-play" class="button" disabled>
+                  Послушать</button
+                ><button id="melody-clear" class="button" disabled>
+                  Очистить
+                </button>
+              </div>
+              <p id="melody-status" role="status">
+                До 20 секунд · начни с нескольких нот
+              </p>
+            </div>
+          </div>
+          <div id="step-bass" class="step-content" hidden>
+            <div
+              id="bass-options"
+              class="bass-options"
+              aria-label="Варианты басовой партии"
+            ></div>
+            <p class="step-footnote">
+              Бас автоматически повторяется в темпе мелодии.
             </p>
           </div>
-          <button id="loop-record" class="button">Записать</button>
-          <button id="loop-play" class="button" disabled>Повтор</button>
-          <button id="loop-clear" class="button" disabled>Очистить</button>
-          <button id="loop-download" class="button" disabled>
-            Скачать
-          </button>
-          <p id="loop-status" role="status">Сначала запиши свою мелодию →</p>
+          <div id="step-rhythm" class="step-content" hidden>
+            <div
+              id="drum-grid"
+              class="drum-grid"
+              aria-label="Ритмический рисунок"
+            ></div>
+            <div class="rhythm-footer">
+              <p>8 шагов · повтор по кругу</p>
+              <button id="rhythm-play" class="button" disabled>
+                Послушать ритм</button
+              ><button id="rhythm-clear" class="button" disabled>
+                Очистить ритм
+              </button>
+            </div>
+          </div>
+          <div id="step-track" class="step-content" hidden>
+            <div
+              id="track-sections"
+              class="track-sections"
+              aria-label="Части твоего трека"
+            ></div>
+          </div>
+        </section>
+        <section class="sound-controls" aria-label="Настройки выбранной партии">
+          <div class="sound-controls-title">
+            <p id="settings-label">НАСТРОЙКИ ПАРТИИ</p>
+            <h2 id="settings-title">Мелодия</h2>
+          </div>
+          <div id="studio-sliders" class="studio-sliders"></div>
+          <label class="timbre-control"
+            ><span>ТЕМБР</span
+            ><select id="timbre" aria-label="Тембр мелодии">
+              <option value="soft">Мягкий</option>
+              <option value="bright">Яркий</option>
+              <option value="bass">Басовый</option></select
+            ><output id="timbre-summary" hidden>Общий</output></label
+          >
+        </section>
+        <div class="studio-next">
+          <div>
+            <h2 id="next-title">Дальше — добавить бас</h2>
+            <p id="next-description">
+              Ты можешь вернуться к любому шагу и поменять звучание.
+            </p>
+          </div>
+          <button id="step-next" class="button primary">Дальше: бас</button>
         </div>
+        <footer class="studio-footer">
+          <span>КОНТУР · МЕЛОДИЯ + БАС + РИТМ</span>
+          <p>Ты выбираешь звуки. Из них рождается твоя музыка.</p>
+        </footer>
       </section>
-
       <section
         id="voice-screen"
         class="screen"
@@ -236,90 +213,48 @@
         </p>
       </section>
     </main>
-
     <dialog id="help-dialog" class="dialog" aria-labelledby="help-title">
       <button
-        class="dialog-close"
         id="help-close"
+        class="dialog-close"
         aria-label="Закрыть инструкцию"
       >
         ×
       </button>
-      <h2 id="help-title">
-        <span class="desktop-only">Звук — это просто</span
-        ><span class="mobile-only">Как это работает?</span>
-      </h2>
-      <ol class="help-steps desktop-only">
+      <h2 id="help-title">Сплети свою музыку</h2>
+      <ol class="studio-help">
         <li>
-          <span>01</span>
-          <div>
-            <h3>Выбери, с чем играть</h3>
-            <p>
-              «Играть» — ноты и электронные звуки.<br />«Мой голос» — короткая
-              запись и эффекты.
-            </p>
-          </div>
+          <strong>Сыграй мелодию</strong>
+          <p>
+            Включи запись и нажимай ноты мышью, пальцами или клавишами A S D F G
+            H J K. Запись — до 20 секунд. Ноты привязываются к общему темпу.
+          </p>
         </li>
         <li>
-          <span>02</span>
-          <div>
-            <h3>Попробуй одно действие</h3>
-            <p>
-              В игре нажми пэд или клавиши A S D F G H J K.<br />Для голоса
-              нажми «Записать голос» и скажи фразу.
-            </p>
-          </div>
+          <strong>Добавь бас</strong>
+          <p>
+            Послушай варианты. Нажми «Добавить», чтобы выбранный рисунок стал
+            частью композиции.
+          </p>
         </li>
         <li>
-          <span>03</span>
-          <div>
-            <h3>Измени звук и посмотри на форму</h3>
-            <p>
-              Настрой голоса A и B: тембр, фильтр, эхо,<br />комнату, громкость
-              и положение слева / справа. Чем сильнее звук, тем заметнее
-              движение формы.
-            </p>
-          </div>
+          <strong>Собери ритм</strong>
+          <p>
+            Включай клетки для бочки, малого барабана и хэта. Каждая клетка —
+            половина доли.
+          </p>
+        </li>
+        <li>
+          <strong>Собери трек</strong>
+          <p>
+            Выбери, какие партии вступают в начале, развитии и финале. Послушай
+            весь трек и скачай WAV.
+          </p>
         </li>
       </ol>
-      <ol class="help-steps mobile-only">
-        <li>
-          <div>
-            <h3>Играй касанием</h3>
-            <p>
-              Нажми и удерживай пэд. Несколько пальцев — несколько нот
-              одновременно.
-            </p>
-          </div>
-        </li>
-        <li>
-          <div>
-            <h3>Создай свою фразу</h3>
-            <p>
-              Настрой оба голоса A и B ниже. Нажми «Записать» и сыграй до 20
-              секунд. Затем включи «Повтор».
-            </p>
-          </div>
-        </li>
-        <li>
-          <div>
-            <h3>Поменяй голос</h3>
-            <p>
-              Разреши микрофон и запиши фразу. Слушай её и сочетай семь
-              эффектов.
-            </p>
-          </div>
-        </li>
-        <li>
-          <div>
-            <h3>Следи за формой</h3>
-            <p>У каждой ноты свой рисунок. Громкость меняет силу движения.</p>
-          </div>
-        </li>
-      </ol>
-      <p class="help-hint desktop-only">
-        Можно удерживать несколько нот. Музыкальный опыт не нужен.<br />В режиме
-        голоса пробел запускает и приостанавливает прослушивание.
+      <p class="help-hint">
+        Громкость, эхо и комната меняют выбранную партию. Раздел «Мой голос»
+        сохраняет запись и эффекты голоса.
       </p>
       <button id="help-done" class="button primary">Понятно, попробую</button>
     </dialog>
@@ -328,7 +263,7 @@
       class="dialog message-dialog"
       aria-labelledby="message-title"
     >
-      <h2 id="message-title">Не удалось начать запись</h2>
+      <h2 id="message-title">Не удалось выполнить действие</h2>
       <p id="message-body"></p>
       <button id="message-close" class="button primary">Понятно</button>
     </dialog>

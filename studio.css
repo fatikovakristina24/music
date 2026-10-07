@@ -1,0 +1,812 @@
+/* Музыкальная студия: общая композиция и четыре шага. */
+.music-studio {
+  background: var(--paper);
+}
+.music-studio .instrument {
+  width: 100%;
+  min-width: 0;
+  max-width: 1440px;
+  padding: 24px 40px 28px;
+  border-radius: 0;
+  min-height: 1120px;
+}
+.music-studio .header {
+  display: flex;
+  height: 74px;
+  align-items: flex-start;
+  gap: 24px;
+}
+.music-studio .brand {
+  font-size: 40px;
+  line-height: 56px;
+  margin: 0;
+}
+.brand-subline {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 11px;
+  line-height: 15px;
+  color: var(--muted);
+}
+.brand-subline button {
+  font-size: 11px;
+  background: none;
+  color: var(--muted);
+  padding: 0;
+}
+.brand-subline button:hover {
+  color: var(--ink);
+}
+.studio-transport {
+  display: grid;
+  grid-template-columns: 160px 112px 240px;
+  gap: 12px;
+  margin-top: 10px;
+}
+.music-studio .button {
+  height: 48px;
+  padding: 0 20px;
+  border-radius: 28px;
+  background: #2a2b2e;
+  white-space: nowrap;
+  font-size: 14px;
+}
+.music-studio .button:hover:not(:disabled) {
+  background: #38393f;
+}
+.music-studio .button.primary,
+.music-studio .button.active {
+  background: var(--accent);
+  color: var(--ink);
+}
+.studio-transport .button {
+  height: 44px;
+}
+.tempo-control {
+  height: 44px;
+  border-radius: 24px;
+  background: #2a2b2e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 14px;
+}
+.tempo-control input {
+  color: var(--ink);
+  text-align: right;
+  width: 38px;
+  background: none;
+  border: 0;
+  padding: 0;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.tempo-control input::-webkit-inner-spin-button {
+  appearance: none;
+}
+.studio-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+.studio-steps button {
+  height: 56px;
+  border-radius: 24px;
+  font-size: 18px;
+  background: #2a2b2e;
+}
+.studio-steps button.selected,
+.thread-on {
+  background: var(--accent) !important;
+  color: var(--ink);
+}
+.studio-steps button:hover:not(.selected) {
+  background: var(--hover);
+}
+.studio-visual {
+  height: 268px;
+  position: relative;
+  margin-top: 30px;
+  overflow: hidden;
+}
+.studio-visual h2 {
+  font:
+    500 16px/22px Manrope,
+    sans-serif;
+}
+#weave-caption {
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--muted);
+}
+#weave-canvas {
+  position: absolute;
+  inset: 20px 0 auto auto;
+  width: calc(100% - 260px);
+  height: 212px;
+  pointer-events: none;
+}
+.weave-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.weave-bottom p {
+  font-size: 12px;
+  color: var(--muted);
+}
+.weave-legend {
+  display: flex;
+  gap: 12px;
+}
+.weave-legend span {
+  display: grid;
+  place-items: center;
+  height: 32px;
+  width: 120px;
+  border-radius: 20px;
+  background: #2a2b2e;
+  font-size: 14px;
+}
+.work-panel {
+  margin-top: 30px;
+  min-height: 290px;
+}
+.work-panel > h2 {
+  font:
+    500 30px/42px Unbounded,
+    sans-serif;
+  letter-spacing: -0.03em;
+}
+#step-description {
+  font-size: 16px;
+  line-height: 22px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.step-content {
+  margin-top: 26px;
+}
+.studio-pads {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 16px;
+}
+.studio-pad {
+  position: relative;
+  height: 112px;
+  border-radius: 24px;
+  background: var(--note-color);
+  padding: 0;
+  color: var(--note-ink);
+  touch-action: none;
+  user-select: none;
+  overflow: hidden;
+}
+.studio-pad .note {
+  position: absolute;
+  left: 16px;
+  top: 14px;
+  font-size: 30px;
+  line-height: 42px;
+}
+.studio-pad .key {
+  position: absolute;
+  right: 14px;
+  top: 12px;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  color: var(--muted);
+  background: #2a2b2e;
+  font-size: 14px;
+}
+.studio-pad svg {
+  position: absolute;
+  left: 16px;
+  bottom: 22px;
+  width: 60px;
+  height: 14px;
+  overflow: visible;
+}
+.studio-pad svg path {
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1;
+}
+.studio-pad:hover {
+  filter: brightness(1.08);
+}
+.studio-pad.pressed {
+  box-shadow: inset 0 0 0 2px var(--ink);
+  filter: brightness(1.17);
+}
+.studio-pad:focus:not(:focus-visible) {
+  outline: none;
+}
+.melody-actions {
+  margin-top: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.action-row {
+  display: flex;
+  gap: 16px;
+}
+#melody-record {
+  width: 240px;
+}
+#melody-play {
+  width: 192px;
+}
+#melody-clear {
+  width: 160px;
+}
+#melody-status {
+  font-size: 14px;
+  color: var(--muted);
+}
+.bass-options,
+.track-sections {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+.bass-option,
+.track-section {
+  padding: 18px 24px;
+  border-radius: 24px;
+  background: var(--surface);
+  min-width: 0;
+}
+.bass-option {
+  min-height: 152px;
+}
+.bass-option.selected {
+  background: var(--tint);
+}
+.bass-option h3,
+.track-section h3 {
+  font:
+    500 22px/31px Unbounded,
+    sans-serif;
+}
+.bass-option > p,
+.track-section > p {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 9px;
+}
+.bass-option .action-row {
+  margin-top: 9px;
+  gap: 12px;
+}
+.bass-option .button {
+  flex: 1;
+  height: 40px;
+  min-width: 0;
+}
+.step-footnote {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 22px;
+}
+.drum-grid {
+  display: grid;
+  grid-template-columns: 172px repeat(8, minmax(0, 1fr));
+  gap: 12px;
+  align-items: center;
+}
+.drum-name {
+  font-size: 18px;
+}
+.drum-step {
+  height: 48px;
+  border-radius: 24px;
+  background: #2a2b2e;
+  font-size: 14px;
+}
+.drum-step[aria-pressed="true"] {
+  background: var(--accent);
+}
+.drum-step.playhead {
+  box-shadow: inset 0 0 0 2px var(--signal);
+}
+.rhythm-footer {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.rhythm-footer p {
+  margin-right: auto;
+  color: var(--muted);
+  font-size: 14px;
+}
+.rhythm-footer .button {
+  height: 32px;
+  font-size: 12px;
+}
+.track-section {
+  min-height: 192px;
+}
+.track-toggles {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+.track-toggles button {
+  flex: 1;
+  height: 40px;
+  min-width: 0;
+  background: #2a2b2e;
+  border-radius: 24px;
+  font-size: 14px;
+  padding: 0 8px;
+}
+.track-toggles button[aria-pressed="true"] {
+  background: var(--accent);
+}
+.track-section .part-hint {
+  margin-top: 12px;
+  font-size: 12px;
+}
+.track-section.playing {
+  box-shadow: inset 0 0 0 1px var(--signal);
+}
+.sound-controls {
+  display: grid;
+  grid-template-columns: 264px 1fr 136px;
+  gap: 30px;
+  padding: 14px 24px;
+  border-radius: 24px;
+  min-height: 88px;
+  margin-top: 30px;
+  background: var(--surface);
+  align-items: center;
+}
+.sound-controls-title p,
+.timbre-control > span {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+}
+.sound-controls-title h2 {
+  font:
+    500 22px/31px Unbounded,
+    sans-serif;
+  margin-top: 5px;
+}
+.studio-sliders {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+}
+.music-studio .studio-sliders .slider {
+  width: 100%;
+  height: 56px;
+  margin: 0;
+}
+.music-studio .studio-sliders .slider-top {
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+.music-studio .studio-sliders input {
+  width: 100%;
+}
+.timbre-control select,
+#timbre-summary {
+  width: 100%;
+  height: 44px;
+  margin-top: 5px;
+  border: 0;
+  border-radius: 24px;
+  color: var(--ink);
+  background: #2a2b2e;
+  text-align: center;
+  text-align-last: center;
+  font:
+    400 14px Manrope,
+    sans-serif;
+}
+#timbre-summary {
+  display: grid;
+  place-items: center;
+}
+.studio-next {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 32px;
+}
+.studio-next h2 {
+  font:
+    500 22px/31px Unbounded,
+    sans-serif;
+}
+.studio-next p {
+  margin-top: 8px;
+  font-size: 15px;
+  color: var(--muted);
+}
+#step-next {
+  width: 270px;
+  flex-shrink: 0;
+}
+.studio-footer {
+  border-top: 1px solid var(--line);
+  margin-top: 48px;
+  padding-top: 24px;
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.studio-footer p {
+  font-size: 12px;
+}
+.studio-help {
+  padding-left: 22px;
+  margin: 24px 0;
+}
+.studio-help li {
+  margin-bottom: 20px;
+}
+.studio-help p {
+  color: var(--muted);
+  margin-top: 6px;
+}
+.music-studio #voice-screen {
+  margin-top: 24px;
+}
+.music-studio.voice-mode .instrument {
+  padding-left: 48px;
+  padding-right: 48px;
+}
+@media (max-width: 1100px) {
+  .music-studio .instrument {
+    padding: 24px;
+    min-height: 0;
+  }
+  .music-studio .header {
+    height: auto;
+    min-height: 74px;
+    flex-wrap: wrap;
+  }
+  .music-studio .brand {
+    font-size: 32px;
+  }
+  .studio-transport {
+    margin: 0;
+    grid-template-columns: 1fr 100px 1fr;
+    width: 100%;
+  }
+  #weave-canvas {
+    top: 66px;
+    width: 100%;
+    height: 150px;
+  }
+  .studio-steps {
+    gap: 10px;
+  }
+  .studio-steps button {
+    font-size: 16px;
+  }
+  .weave-bottom p {
+    max-width: 260px;
+    text-align: right;
+  }
+  .work-panel > h2 {
+    font-size: 25px;
+  }
+  .studio-pads {
+    gap: 10px;
+  }
+  .studio-pad {
+    height: 110px;
+    border-radius: 20px;
+  }
+  .studio-pad .note {
+    font-size: 23px;
+    left: 12px;
+    top: 30px;
+  }
+  .studio-pad .key {
+    width: 22px;
+    height: 22px;
+    right: 10px;
+    top: 8px;
+    font-size: 11px;
+  }
+  .studio-pad svg {
+    width: 48px;
+    left: 12px;
+    bottom: 15px;
+  }
+  .melody-actions {
+    flex-wrap: wrap;
+  }
+  .action-row {
+    width: 100%;
+  }
+  #melody-record,
+  #melody-play,
+  #melody-clear {
+    width: auto;
+    flex: 1;
+  }
+  .sound-controls {
+    grid-template-columns: 1fr 136px;
+    gap: 20px;
+  }
+  .studio-sliders {
+    grid-row: 2;
+    grid-column: 1/-1;
+  }
+  .timbre-control {
+    grid-row: 1;
+    grid-column: 2;
+  }
+  .bass-options,
+  .track-sections {
+    gap: 12px;
+  }
+  .bass-option,
+  .track-section {
+    padding: 18px 14px;
+  }
+  .bass-option h3,
+  .track-section h3 {
+    font-size: 17px;
+  }
+  .bass-option > p {
+    min-height: 38px;
+    font-size: 13px;
+  }
+  .bass-option .action-row {
+    flex-wrap: wrap;
+  }
+  .bass-option .button {
+    flex-basis: 100%;
+  }
+  .track-toggles {
+    flex-direction: column;
+  }
+  .track-toggles button {
+    flex: none;
+  }
+  .drum-grid {
+    grid-template-columns: 88px repeat(8, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .drum-name {
+    font-size: 15px;
+  }
+  .rhythm-footer {
+    flex-wrap: wrap;
+  }
+  .studio-next h2 {
+    font-size: 19px;
+  }
+  #step-next {
+    width: 210px;
+  }
+  .music-studio.voice-mode .instrument {
+    padding: 24px;
+  }
+}
+@media (max-width: 600px) {
+  .music-studio .instrument,
+  .music-studio.voice-mode .instrument {
+    padding: 20px;
+  }
+  .brand-subline {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .brand-subline > span {
+    flex-basis: 100%;
+  }
+  .studio-transport {
+    grid-template-columns: 1fr 78px 1fr;
+    gap: 8px;
+  }
+  .music-studio .studio-transport .button {
+    padding: 0 8px;
+    font-size: 12px;
+  }
+  .tempo-control {
+    font-size: 12px;
+  }
+  .tempo-control input {
+    width: 30px;
+  }
+  .studio-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .studio-steps button {
+    height: 48px;
+    font-size: 16px;
+  }
+  .studio-visual {
+    margin-top: 24px;
+    height: 254px;
+  }
+  .weave-bottom {
+    flex-wrap: wrap;
+    bottom: 0;
+  }
+  .weave-legend {
+    gap: 8px;
+    width: 100%;
+  }
+  .weave-legend span {
+    flex: 1;
+    width: auto;
+    font-size: 12px;
+  }
+  .weave-bottom p {
+    max-width: none;
+    text-align: left;
+    font-size: 11px;
+  }
+  .work-panel {
+    margin-top: 30px;
+  }
+  .work-panel > h2 {
+    font-size: 22px;
+    line-height: 32px;
+  }
+  #step-description {
+    font-size: 14px;
+    line-height: 21px;
+    margin-top: 10px;
+  }
+  .studio-pads {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .studio-pad {
+    height: 96px;
+  }
+  .studio-pad .note {
+    top: 18px;
+    left: 10px;
+    font-size: 22px;
+  }
+  .studio-pad .key {
+    display: none;
+  }
+  .studio-pad svg {
+    width: 48px;
+    left: 10px;
+  }
+  .melody-actions {
+    margin-top: 20px;
+    gap: 14px;
+  }
+  .action-row {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  #melody-record {
+    flex-basis: 100%;
+  }
+  #melody-play,
+  #melody-clear {
+    flex-basis: calc(50% - 5px);
+  }
+  .sound-controls {
+    margin-top: 28px;
+    padding: 20px;
+    gap: 20px;
+  }
+  .sound-controls-title h2 {
+    font-size: 18px;
+  }
+  .timbre-control {
+    width: 120px;
+    justify-self: end;
+  }
+  .studio-sliders {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .music-studio .studio-sliders .slider-top {
+    font-size: 14px;
+  }
+  .bass-options,
+  .track-sections {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .bass-option {
+    padding: 20px;
+    min-height: 0;
+  }
+  .bass-option > p {
+    min-height: 0;
+  }
+  .bass-option .action-row {
+    flex-wrap: nowrap;
+  }
+  .bass-option .button {
+    flex-basis: auto;
+  }
+  .track-section {
+    min-height: 0;
+    padding: 20px;
+  }
+  .track-toggles {
+    flex-direction: row;
+  }
+  .track-toggles button {
+    flex: 1;
+    padding: 0 6px;
+    font-size: 12px;
+  }
+  .drum-grid {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .drum-name {
+    grid-column: 1/-1;
+    font-size: 16px;
+    margin-top: 6px;
+  }
+  .drum-step {
+    height: 44px;
+    border-radius: 15px;
+    font-size: 12px;
+  }
+  .rhythm-footer p {
+    flex-basis: 100%;
+  }
+  .rhythm-footer .button {
+    flex: 1;
+    height: 44px;
+    padding: 0 6px;
+  }
+  .studio-next {
+    flex-direction: column;
+    gap: 20px;
+  }
+  .studio-next h2 {
+    font-size: 18px;
+    line-height: 27px;
+  }
+  .studio-next p {
+    font-size: 14px;
+  }
+  #step-next {
+    width: 100%;
+  }
+  .studio-footer {
+    margin-top: 32px;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .studio-footer p {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 600px) {
+  .music-studio .studio-sliders .slider {
+    height: 68px;
+  }
+}

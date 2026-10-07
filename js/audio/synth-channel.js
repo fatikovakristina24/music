@@ -74,7 +74,14 @@ export function createSynthChannel(context, settings, destination, index) {
   sum.connect(mix);
   sum.connect(room).connect(roomWet).connect(mix);
   const gate = context.createGain();
-  mix.connect(volume).connect(pan).connect(gate).connect(destination);
+  const analyser = context.createAnalyser();
+  analyser.fftSize = 256;
+  mix
+    .connect(volume)
+    .connect(pan)
+    .connect(gate)
+    .connect(analyser)
+    .connect(destination);
 
   const update = (name, value, initial = false) => {
     const parameters = {
@@ -93,7 +100,7 @@ export function createSynthChannel(context, settings, destination, index) {
   update("enabled", settings.enabled, true);
   for (const [name, value] of Object.entries(settings))
     update(name, value, true);
-  return { input, update };
+  return { input, update, analyser };
 }
 
 export function synthEffectTail(settings) {

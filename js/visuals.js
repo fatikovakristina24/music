@@ -22,14 +22,16 @@ function analyserState(analyser, storage) {
 }
 
 export class SoundVisuals {
-  constructor(engine, voice, geometry, onFrame) {
+  constructor(engine, voice, geometry, onFrame, options = {}) {
     this.engine = engine;
     this.voice = voice;
     this.geometry = geometry;
     this.onFrame = onFrame;
-    this.synthCanvas = document.querySelector("#synth-canvas");
+    this.synthCanvas = options.voiceOnly
+      ? null
+      : document.querySelector("#synth-canvas");
     this.voiceCanvas = document.querySelector("#voice-canvas");
-    this.mode = "play";
+    this.mode = options.voiceOnly ? "voice" : "play";
     this.energy = 0;
     this.noteLevels = Array(8).fill(0);
     this.mobileLayout = matchMedia("(max-width: 600px)");
@@ -46,7 +48,7 @@ export class SoundVisuals {
       spectrum: new Uint8Array(1024),
     };
     this.observer = new ResizeObserver(() => this.resize());
-    this.observer.observe(this.synthCanvas);
+    if (this.synthCanvas) this.observer.observe(this.synthCanvas);
     this.observer.observe(this.voiceCanvas);
     this.resize();
     this.frame = this.frame.bind(this);
@@ -54,7 +56,7 @@ export class SoundVisuals {
   }
   resize() {
     const dpr = Math.min(devicePixelRatio || 1, 2);
-    for (const canvas of [this.synthCanvas, this.voiceCanvas]) {
+    for (const canvas of [this.synthCanvas, this.voiceCanvas].filter(Boolean)) {
       const rect = canvas.getBoundingClientRect();
       if (!rect.width) continue;
       canvas.width = Math.round(canvas.clientWidth * dpr);
