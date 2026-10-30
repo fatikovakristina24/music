@@ -6,9 +6,9 @@
     <meta name="theme-color" content="#0a0a0b" />
     <meta
       name="description"
-      content="Сплетение — синтезатор для исполнения композиции: один мотив меняет характер благодаря басу, ритму и тембру."
+      content="Сплетение — электронная музыкальная стойка. Смешивай партии на двух деках, меняй звучание и записывай своё исполнение."
     />
-    <title>Сплетение — один мотив, разное звучание</title>
+    <title>Сплетение — музыкальная стойка</title>
     <link rel="icon" href="assets/favicon.svg" />
     <link
       rel="preload"
@@ -17,231 +17,158 @@
       type="font/ttf"
       crossorigin
     />
-    <link rel="stylesheet" href="styles.css?v=20261030-performance" />
+    <link rel="stylesheet" href="styles.css?v=20261031-rack" />
   </head>
   <body>
     <main class="studio">
       <header class="topbar">
-        <a class="brand" href="./">СПЛЕТЕНИЕ</a
-        ><span class="project-caption">Один мотив / авторская композиция</span
-        ><button class="button score-button" data-score>Партитура</button>
+        <h1>СПЛЕТЕНИЕ</h1>
+        <span class="project-caption">Проект: Сплетение</span
+        ><button id="new">Новый трек</button
+        ><button id="help">Как собрать трек</button>
       </header>
-      <section id="intro" class="intro">
-        <div class="intro-copy">
-          <h1>СПЛЕТЕНИЕ</h1>
-          <p class="lead">Один мотив. Разное звучание.</p>
-          <p class="intro-description">
-            Сначала мелодия звучит одна. Бас и&nbsp;ритм постепенно<br
-              class="desktop-break"
-            />
-            превращают её в&nbsp;плотный танцевальный трек.
-          </p>
-        </div>
-        <div class="intro-wave">
-          <img
-            src="assets/wave-motif.svg"
-            alt="Линия мелодии"
-            width="1360"
-            height="300"
-          />
-        </div>
-        <div class="intro-actions">
-          <button class="button primary" id="start">Начать исполнение</button
-          ><button class="button" id="demo">Слушать композицию</button
-          ><button class="text-button" data-score>Как исполнять</button>
-        </div>
-        <p class="intro-meta">02:00 / четыре части / мышь или клавиатура</p>
-        <p class="intro-footnote">
-          Звук и&nbsp;запись исполнения начнутся после нажатия.
-        </p>
+      <section class="transport panel" aria-label="Воспроизведение и запись">
+        <button id="play" class="primary">Играть</button
+        ><button id="stop">Стоп</button
+        ><button id="record">Записать трек</button>
+        <label class="select-pill"
+          ><span class="sr-only">Темп</span
+          ><select id="bpm">
+            <option value="90">90 BPM</option>
+            <option value="100">100 BPM</option>
+            <option value="112" selected>112 BPM</option>
+            <option value="120">120 BPM</option>
+            <option value="128">128 BPM</option>
+            <option value="140">140 BPM</option>
+          </select></label
+        >
+        <label class="select-pill"
+          ><span class="sr-only">Тональность</span
+          ><select id="key">
+            <option value="0">Ре минор</option>
+            <option value="-2">До минор</option>
+            <option value="3">Фа минор</option>
+            <option value="7">Ля минор</option>
+          </select></label
+        >
+        <span class="meta-pill">4 такта</span
+        ><span id="clock" class="muted">00:00 / такт 01</span
+        ><button id="example">Пример автора</button
+        ><button id="download" disabled>Скачать</button>
       </section>
+      <div class="rack">
+        <section class="deck panel" id="deck-a" aria-label="Дека A"></section>
+        <section class="mixer panel" aria-label="Микшер A и B">
+          <div class="mixer-inner" id="mixer"></div>
+        </section>
+        <section class="deck panel" id="deck-b" aria-label="Дека B"></section>
+      </div>
       <section
-        id="performance"
-        class="performance"
-        hidden
-        aria-labelledby="part-title"
-      >
-        <div class="part-heading">
-          <div>
-            <p class="eyebrow" id="part-number">СПЛЕТЕНИЕ / 1 ИЗ 4</p>
-            <h1 id="part-title">Мотив</h1>
-          </div>
-          <div class="clock">
-            <span id="clock">00:00</span
-            ><span class="clock-total">из 02:00</span>
-          </div>
+        class="library panel"
+        id="library"
+        aria-label="Библиотека лупов"
+      ></section>
+      <section class="effects panel">
+        <div class="section-heading">
+          <h2>Переходы</h2>
+          <p class="muted">Выбери эффект и измени его глубину.</p>
         </div>
-        <canvas id="visual" aria-label="Линии звучащих партий"></canvas>
-        <div class="play-area">
-          <div class="notes" role="group" aria-label="Ноты мотива">
-            <button class="note" data-note="0" aria-label="Ре, клавиша A">
-              <span>Ре</span><kbd>A</kbd></button
-            ><button class="note" data-note="1" aria-label="Фа, клавиша S">
-              <span>Фа</span><kbd>S</kbd></button
-            ><button class="note" data-note="2" aria-label="Ля, клавиша D">
-              <span>Ля</span><kbd>D</kbd></button
-            ><button class="note" data-note="3" aria-label="Ми, клавиша F">
-              <span>Ми</span><kbd>F</kbd>
-            </button>
+        <div class="fx-body">
+          <div class="fx-buttons">
+            <button data-fx="filter">Фильтр</button
+            ><button data-fx="echo">Эхо</button
+            ><button data-fx="room">Реверберация</button
+            ><button data-fx="drive">Драйв</button>
           </div>
-          <p class="gesture-hint" id="gesture-hint"></p>
-        </div>
-        <div class="controls" role="group" aria-label="Звучание композиции">
-          <label class="control" for="bass"
-            ><span class="control-heading"
-              ><span>Бас</span
-              ><output id="bass-value" for="bass">0 %</output></span
+          <label class="depth"
+            ><span>Глубина FX <output id="depth-value">32 %</output></span
             ><input
-              id="bass"
-              data-control="0"
+              id="depth"
               type="range"
               min="0"
               max="100"
-              value="0"
-            /><span class="control-caption">Глубина низких нот</span></label
-          >
-          <label class="control" for="rhythm"
-            ><span class="control-heading"
-              ><span>Ритм</span
-              ><output id="rhythm-value" for="rhythm">0 %</output></span
-            ><input
-              id="rhythm"
-              data-control="1"
-              type="range"
-              min="0"
-              max="100"
-              value="0"
-            /><span class="control-caption">Плотность ударных</span></label
-          >
-          <label class="control" for="brightness"
-            ><span class="control-heading"
-              ><span>Яркость</span
-              ><output id="brightness-value" for="brightness"
-                >20 %</output
-              ></span
-            ><input
-              id="brightness"
-              data-control="2"
-              type="range"
-              min="0"
-              max="100"
-              value="20"
-            /><span class="control-caption">Открытие фильтра</span></label
-          >
+              value="32" /></label
+          ><button id="reset-fx">Сброс FX</button
+          ><button id="drop" class="primary">ДРОП</button>
         </div>
-        <nav class="parts" aria-label="Части композиции">
-          <div>
-            <button class="button part" data-part="0">1 Мотив</button
-            ><span>00:00—00:30</span>
-          </div>
-          <div>
-            <button class="button part" data-part="1">2 Бас</button
-            ><span>00:30—01:00</span>
-          </div>
-          <div>
-            <button class="button part" data-part="2">3 Ритм</button
-            ><span>01:00—01:30</span>
-          </div>
-          <div>
-            <button class="button part" data-part="3">4 Сплетение</button
-            ><span>01:30—02:00</span>
-          </div>
-        </nav>
-        <footer class="performance-footer">
-          <p class="keyboard-help">
-            A S D F: ноты / 1–4: части / Пробел: пауза
-          </p>
-          <button class="button primary next-button" id="next">
-            Далее: Бас</button
-          ><button class="button pause-button" id="pause">Пауза</button>
-          <p
-            class="transition-hint"
-            id="transition-hint"
-            aria-live="polite"
-          ></p>
-        </footer>
       </section>
-      <section id="ending" class="ending" hidden>
-        <h1>ВСЁ СПЛЕЛОСЬ</h1>
-        <p class="ending-description">Одна мелодия стала полноценным треком.</p>
-        <canvas
-          id="ending-visual"
-          aria-label="Сплетение музыкальных партий"
-        ></canvas>
-        <p class="ending-duration" id="ending-duration"></p>
-        <div class="ending-actions">
-          <button class="button primary" id="download" disabled>
-            Скачать исполнение</button
-          ><button class="button" id="again">Сыграть ещё раз</button>
+      <section class="scenes panel">
+        <div class="section-heading">
+          <h2>Сцены</h2>
+          <p class="muted">Меняй состав слоёв одним действием.</p>
         </div>
-        <p class="ending-caption">
-          Сохраняется именно это исполнение со&nbsp;всеми твоими жестами.
-        </p>
+        <div class="scene-buttons" id="scenes"></div>
       </section>
-      <p class="notice" id="notice" role="status" hidden></p>
     </main>
-    <dialog
-      class="pause-dialog"
-      id="pause-dialog"
-      aria-labelledby="pause-title"
-    >
-      <h2 id="pause-title">Пауза</h2>
+    <dialog id="help-dialog">
+      <button class="close" data-close>Закрыть</button>
+      <h2>Твой первый микс</h2>
+      <ol>
+        <li>Нажми «Играть»: на деке A зазвучит мотив.</li>
+        <li>
+          В библиотеке выбери звук и нажми «В A» или «В B». Новый слой вступит с
+          ближайшего такта.
+        </li>
+        <li>
+          Запусти деку B. Ползунок «Переход A / B» смешивает две деки: слева
+          слышна A, справа B, в центре обе.
+        </li>
+        <li>
+          Меняй громкость, выключай слои и добавляй эффекты. «ДРОП» убирает низ
+          и возвращает бас с бочкой на следующем такте.
+        </li>
+        <li>
+          Нажми «Записать трек», сыграй переходы, затем останови запись и скачай
+          её.
+        </li>
+      </ol>
+      <h3>Авторская композиция «Сплетение»</h3>
       <p>
-        Музыка и&nbsp;таймер остановлены.<br />Продолжи с&nbsp;того&nbsp;же
-        места.
-      </p>
-      <button class="button primary" id="resume">Продолжить</button
-      ><button class="text-button" id="finish-paused">
-        Завершить исполнение
-      </button>
-    </dialog>
-    <dialog
-      class="score-dialog"
-      id="score-dialog"
-      aria-labelledby="score-title"
-    >
-      <button class="button close-score" id="close-score">К пьесе</button>
-      <h2 id="score-title">Партитура «Сплетение»</h2>
-      <p class="score-meta">02:00 / 112 BPM / ре минор / 56 тактов</p>
-      <p class="score-intent">
-        Один и&nbsp;тот&nbsp;же мотив меняет характер благодаря басу, ритму
-        и&nbsp;тембру.
-      </p>
-      <p class="motif-score">
-        Ре4 / четверть · пауза / восьмая · Фа4 / восьмая · Ля4 / четверть · Ми4
-        / четверть
-      </p>
-      <div id="score-parts"></div>
-      <h3>Что делает исполнитель</h3>
-      <p>
-        Вручную вводит партии, меняет их&nbsp;баланс и&nbsp;открывает фильтр.
-        Мотив и&nbsp;партии сочинены заранее. Следующая часть вступает
-        на&nbsp;отметке партитуры. Если отметка уже прошла — на&nbsp;ближайшем
-        такте.
+        Один мотив обрастает басом, ритмом и вторым мелодическим рисунком. Через
+        плотную кульминацию музыка возвращается к открытому мотиву. Четыре
+        части, две минуты.
       </p>
       <p>
-        A S D F: ноты. Цифры 1–4: части по&nbsp;порядку. Пробел: пауза. Ползунки
-        доступны мышью, касанием, клавишей Tab и&nbsp;стрелками.
+        «Пример автора» исполняет композицию автоматически и записывает её. Для
+        своего исполнения переключай сцены вручную.
       </p>
-      <h3>Голоса и цепочки эффектов</h3>
-      <p>
-        Мелодия: синус с&nbsp;треугольным слоем → фильтр → эхо
-        и&nbsp;реверберация.<br />Бас: низкий треугольный тон → фильтр →
-        огибающая.<br />Ударные: синус и&nbsp;шум → фильтры → компрессор.
-      </p>
-      <p>
-        «Начать исполнение» оставляет переходы тебе. «Слушать композицию»
-        исполняет подготовленный пример автоматически.
+      <p class="muted">
+        Пробел — играть / пауза. 1–4 — сцены. Все параметры доступны с
+        клавиатуры через Tab и стрелки. Свой аудиолуп: до 30 секунд и 20 МБ,
+        подстрой темп исходника перед загрузкой. Данные остаются в браузере до
+        перезагрузки.
       </p>
     </dialog>
-    <noscript>Для синтезатора нужен JavaScript.</noscript>
-    <script>
-      if (location.protocol === "file:") {
-        document.querySelector("#notice").hidden = false;
-        document.querySelector("#notice").textContent =
-          "Открой проект через локальный сервер VS Code или по ссылке fatikovakristina24.github.io/music/.";
-      }
-    </script>
-    <script type="module" src="js/app.js?v=20261030-performance"></script>
+    <dialog id="new-dialog">
+      <h2>Начать новый трек?</h2>
+      <p>
+        Слои и сохранённые сцены очистятся. Если нужна текущая запись, сначала
+        скачай её.
+      </p>
+      <div class="dialog-actions">
+        <button data-close>Отмена</button
+        ><button id="confirm-new" class="primary">Новый трек</button>
+      </div>
+    </dialog>
+    <dialog id="beat-dialog">
+      <button class="close" data-close>Закрыть</button>
+      <h2>Собери свой ритм</h2>
+      <p class="muted">
+        16 шагов — один такт. Нажимай клетки, чтобы добавить удар.
+      </p>
+      <div id="beat-grid"></div>
+      <div class="beat-controls">
+        <label
+          >Свинг <output id="swing-value">12 %</output
+          ><input id="swing" type="range" min="0" max="60" value="12" /></label
+        ><button id="beat-preview">Слушать</button
+        ><button id="beat-clear">Очистить</button
+        ><button id="beat-save" class="primary">Сохранить в лупы</button>
+      </div>
+    </dialog>
+    <input id="audio-file" type="file" accept="audio/*" hidden />
+    <p id="notice" role="status" hidden></p>
+    <noscript>Для музыкальной стойки нужен JavaScript.</noscript>
+    <script type="module" src="js/app.js?v=20261031-rack"></script>
   </body>
 </html>
